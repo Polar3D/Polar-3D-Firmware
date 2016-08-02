@@ -111,6 +111,9 @@ void manage_inactivity();
 #elif defined(X_ENABLE_PIN) && X_ENABLE_PIN > -1
   #define  enable_x() WRITE(X_ENABLE_PIN, X_ENABLE_ON)
   #define disable_x() { WRITE(X_ENABLE_PIN,!X_ENABLE_ON); axis_known_position[X_AXIS] = false; }
+#elif defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
+  #define enable_x() { l6470_x.enable(); }
+  #define disable_x() { l6470_x.disable(); }
 #else
   #define enable_x() ;
   #define disable_x() ;
@@ -124,6 +127,9 @@ void manage_inactivity();
     #define  enable_y() WRITE(Y_ENABLE_PIN, Y_ENABLE_ON)
     #define disable_y() { WRITE(Y_ENABLE_PIN,!Y_ENABLE_ON); axis_known_position[Y_AXIS] = false; }
   #endif
+#elif defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
+  #define enable_y() { l6470_y.enable(); }
+  #define disable_y() { l6470_y.disable(); }
 #else
   #define enable_y() ;
   #define disable_y() ;
@@ -137,6 +143,9 @@ void manage_inactivity();
     #define  enable_z() WRITE(Z_ENABLE_PIN, Z_ENABLE_ON)
     #define disable_z() { WRITE(Z_ENABLE_PIN,!Z_ENABLE_ON); axis_known_position[Z_AXIS] = false; }
   #endif
+#elif defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
+  #define enable_z() { l6470_z.enable(); }
+  #define disable_z() { l6470_z.disable(); }
 #else
   #define enable_z() ;
   #define disable_z() ;
@@ -145,6 +154,9 @@ void manage_inactivity();
 #if defined(E0_ENABLE_PIN) && (E0_ENABLE_PIN > -1)
   #define enable_e0() WRITE(E0_ENABLE_PIN, E_ENABLE_ON)
   #define disable_e0() WRITE(E0_ENABLE_PIN,!E_ENABLE_ON)
+#elif defined(E0_L6470_CS_PIN) && (E0_L6470_CS_PIN > -1)
+  #define enable_e0() { l6470_e0.enable(); }
+  #define disable_e0() { l6470_e0.disable(); }
 #else
   #define enable_e0()  /* nothing */
   #define disable_e0() /* nothing */
@@ -153,6 +165,9 @@ void manage_inactivity();
 #if (EXTRUDERS > 1) && defined(E1_ENABLE_PIN) && (E1_ENABLE_PIN > -1)
   #define enable_e1() WRITE(E1_ENABLE_PIN, E_ENABLE_ON)
   #define disable_e1() WRITE(E1_ENABLE_PIN,!E_ENABLE_ON)
+#elif (EXTRUDERS > 1) && defined(E1_L6470_CS_PIN) && (E1_L6470_CS_PIN > -1)
+  #define enable_e1() { l6470_e1.enable(); }
+  #define disable_e1() { l6470_e1.disable(); }
 #else
   #define enable_e1()  /* nothing */
   #define disable_e1() /* nothing */
@@ -161,6 +176,9 @@ void manage_inactivity();
 #if (EXTRUDERS > 2) && defined(E2_ENABLE_PIN) && (E2_ENABLE_PIN > -1)
   #define enable_e2() WRITE(E2_ENABLE_PIN, E_ENABLE_ON)
   #define disable_e2() WRITE(E2_ENABLE_PIN,!E_ENABLE_ON)
+#elif (EXTRUDERS > 2) && defined(E2_L6470_CS_PIN) && (E2_L6470_CS_PIN > -1)
+  #define enable_e2() { l6470_e2.enable(); }
+  #define disable_e2() { l6470_e2.disable(); }
 #else
   #define enable_e2()  /* nothing */
   #define disable_e2() /* nothing */

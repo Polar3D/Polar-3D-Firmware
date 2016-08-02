@@ -61,6 +61,10 @@
 #include <SPI.h>
 #endif
 
+#if defined(USE_L6470)
+#include "stepper_l6470.h" // for enable_() and disable_() calls
+#endif
+
 #define VERSION_STRING  "1.0.0"
 
 // look here for descriptions of gcodes: http://linuxcnc.org/handbook/gcode/g-code.html
@@ -434,6 +438,24 @@ void servo_init()
 
 void setup()
 {
+  
+  // turn on chassis fan
+  SET_OUTPUT(20);
+  WRITE(20,HIGH);
+  
+  // enable stepper motor controllers
+  SET_OUTPUT(42);
+  SET_OUTPUT(43);
+  SET_OUTPUT(44);
+  SET_OUTPUT(45);
+  
+  WRITE(42,HIGH);
+  WRITE(43,HIGH);
+  WRITE(44,HIGH);
+  WRITE(45,HIGH);
+        
+  
+        
 #ifdef DISABLE_JTAG
   MCUCR = 0x80;
   MCUCR = 0x80;
@@ -490,11 +512,16 @@ void setup()
   servo_init();
 
   lcd_init();
-  _delay_ms(1000);	// wait 1sec to display the splash screen
+  //_delay_ms(1000);	// wait 1sec to display the splash screen
 
   #if defined(CONTROLLERFAN_PIN) && CONTROLLERFAN_PIN > -1
     SET_OUTPUT(CONTROLLERFAN_PIN); //Set pin used for driver cooling fan
   #endif
+
+  // No longer needed for Polar Bot 1.1
+  // dcn, 2 August 2016
+  // setup I2C to LED bar
+  // Wire.begin();
 }
 
 
@@ -543,6 +570,11 @@ void loop()
   manage_inactivity();
   checkHitEndstops();
   lcd_update();
+  
+  // turn on chassis fan
+  SET_OUTPUT(20);
+  WRITE(20,HIGH);
+        
 }
 
 void get_command()
@@ -990,46 +1022,14 @@ static void retract_z_probe() {
 
 static void homeaxis(int axis) {
 
-    // special case for pixie... if end stop is triggered, we don't know which axis triggered it
-   if ((READ(X_MIN_PIN)^X_MIN_ENDSTOP_INVERTING))
-   {
-        int curx, curz;
-         
-        curx = current_position[0];
- 
-        feedrate = homing_feedrate[0] ;
-        current_position[0] = 0;
-        plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
-        destination[0] = -home_retract_mm(0) * home_dir(0);
-        plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
-        st_synchronize();
-        
-        current_position[0] = curx;
-        destination[0] = current_position[0];
- 
-        if ((READ(X_MIN_PIN)^X_MIN_ENDSTOP_INVERTING))
-        {
-            curz = current_position[2];
-     
-            feedrate = homing_feedrate[2] ;
-            current_position[2] = 0;
-            plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
-            destination[2] = -home_retract_mm(2) * home_dir(2);
-            plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
-            st_synchronize();
-            
-            current_position[2] = curz;
-            destination[2] = current_position[2];
-        } 
-   }
-   
 #define HOMEAXIS_DO(LETTER) \
-  ((X_MIN_PIN > -1 && LETTER##_HOME_DIR==-1) || (X_MAX_PIN > -1 && LETTER##_HOME_DIR==1))
-   
+   ((LETTER##_MIN_PIN > -1 && home_dir(LETTER##_AXIS) < 0) || (LETTER##_MAX_PIN > -1 && home_dir(LETTER##_AXIS) > 0)) 
    
   if (axis==X_AXIS ? HOMEAXIS_DO(X) :
+      axis==Y_AXIS ? HOMEAXIS_DO(Y) :
       axis==Z_AXIS ? HOMEAXIS_DO(Z) :
       0) {
+
     current_position[axis] = 0;
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
     destination[axis] = 1.5 * max_length(axis) * home_dir(axis);
@@ -1047,20 +1047,29 @@ static void homeaxis(int axis) {
     feedrate = homing_feedrate[axis]/2 ; 
     plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
     st_synchronize();
-   
+
+    endstops_hit_on_purpose();
+
+    // if x axis homing, move to actual zero position after finding home
+    if(axis==X_AXIS)
+    {
+  
+      current_position[X_AXIS] = 8;
+      plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+      destination[X_AXIS] = 0;
+      feedrate = homing_feedrate[axis];
+      plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
+      st_synchronize();
+      
+      //do_blocking_move_relative( -30, 0, 0 );
+      
+    }
+    
     axis_is_at_home(axis);					
     destination[axis] = current_position[axis] = add_homeing[axis];
     feedrate = 0.0;
-    endstops_hit_on_purpose();
-    
-    //current_position[axis] = 0;
-    plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
-    //destination[axis] = 3*home_retract_mm(axis) * home_dir(axis);
-    feedrate = homing_feedrate[axis];
-    plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
-    st_synchronize();
-    
-  }
+
+ }
 }
 #define HOMEAXIS(LETTER) homeaxis(LETTER##_AXIS)
 
@@ -1199,16 +1208,31 @@ void process_commands()
       
       if((home_all_axis) || (code_seen(axis_codes[X_AXIS]))) 
       {
-        HOMEAXIS(X);
+        HOMEAXIS(X);        
+
+        // temporarily disable endstops so we can reposition
+        enable_endstops(false);
+
+        // move over Y sensor
+        current_position[X_AXIS] = 0;
+        do_blocking_move_relative( -8, 0, 0 );
+        current_position[X_AXIS] = 0;
+
+        // reanable enstops
+        enable_endstops(true);
       }
 
-      if((home_all_axis) || (code_seen(axis_codes[Y_AXIS]))) {
-        //HOMEAXIS(Y);
-        current_position[Y_AXIS]=0;
+      if((home_all_axis) || (code_seen(axis_codes[Y_AXIS]))) 
+      {
+        // adjust to X zero point to align Y magnet
+        //do_blocking_move_to(0.0, current_position[Y_AXIS], current_position[Y_AXIS]);
+        
+        HOMEAXIS(Y);
       }
       
       #if Z_HOME_DIR < 0                      // If homing towards BED do Z last
-      if((home_all_axis) || (code_seen(axis_codes[Z_AXIS]))) {
+      if((home_all_axis) || (code_seen(axis_codes[Z_AXIS]))) 
+      {
         HOMEAXIS(Z);
       }
       #endif
@@ -1224,7 +1248,7 @@ void process_commands()
       if(code_seen(axis_codes[Y_AXIS])) {
         if(code_value_long() != 0) {
           //current_position[Y_AXIS]=code_value()+add_homeing[1];
-          current_position[Y_AXIS]=0;
+          current_position[Y_AXIS]=add_homeing[Y_AXIS];
         }
       }
 
@@ -1292,17 +1316,17 @@ void process_commands()
             
             for (int yProbe=FRONT_PROBE_BED_POSITION; yProbe <= BACK_PROBE_BED_POSITION; yProbe += yGridSpacing)
             {
-              int xProbe, xInc;
+              int xProbe, xInc, xEnd;
               if (zig)
               {
                 xProbe = LEFT_PROBE_BED_POSITION;
-                //xEnd = RIGHT_PROBE_BED_POSITION;
+                xEnd = RIGHT_PROBE_BED_POSITION;
                 xInc = xGridSpacing;
                 zig = false;
               } else // zag
               {
                 xProbe = RIGHT_PROBE_BED_POSITION;
-                //xEnd = LEFT_PROBE_BED_POSITION;
+                xEnd = LEFT_PROBE_BED_POSITION;
                 xInc = -xGridSpacing;
                 zig = true;
               }
@@ -1536,7 +1560,6 @@ void process_commands()
       SERIAL_PROTOCOLLNPGM(MSG_END_FILE_LIST);
       break;
     case 21: // M21 - init SD card
-
       card.initsd();
 
       break;
@@ -1877,9 +1900,7 @@ void process_commands()
 
     #if defined(FAN_PIN) && FAN_PIN > -1
       case 106: //M106 Fan On
-      
-        SET_OUTPUT(20);
-        WRITE(20,HIGH);
+
       
         if (code_seen('S')){
            fanSpeed=constrain(code_value(),0,255);
@@ -1889,8 +1910,8 @@ void process_commands()
         }
         break;
       case 107: //M107 Fan Off
-        SET_OUTPUT(20);
-        WRITE(20,LOW);
+        //SET_OUTPUT(20);
+        //WRITE(20,LOW);
         fanSpeed = 0;
         break;
     #endif //FAN_PIN
@@ -2041,6 +2062,14 @@ void process_commands()
       if(starpos!=NULL)
         *(starpos-1)='\0';
       lcd_setstatus(strchr_pointer + 5);
+      
+        // No longer needed for Polar Bot 1.1
+        // dcn, 2 August 2016
+        // send data to led bar
+        // Wire.beginTransmission(0x0A); // transmit to device #0a
+        // Wire.write(strchr_pointer + 5);
+        // Wire.endTransmission();    // stop transmitting
+
       break;
     case 114: // M114
       SERIAL_PROTOCOLPGM("X:");

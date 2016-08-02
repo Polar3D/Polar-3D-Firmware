@@ -34,6 +34,9 @@
 #include <SPI.h>
 #endif
 
+#if defined(USE_L6470) && (USE_L6470 != 0)
+#include "stepper_l6470.h"
+#endif
 
 //===========================================================================
 //=============================public variables  ============================
@@ -164,6 +167,171 @@ asm volatile ( \
 : \
 "r26" , "r27" \
 )
+
+// L6470 support
+
+#if defined(USE_L6470) && (USE_L6470 != 0)
+
+#include "L6470.h"
+
+// Declare L6470 objects, one per axis
+// We could declare these as an array using C++ automatic class copy constructor
+
+#if defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
+  #if !defined(X_L6470_RST_PIN) || (X_L6470_RST_PIN < 0)
+    #error X_L6470_RST_PIN (reset pin for the X axis L6470 driver) must be defined and larger than -1
+  #endif
+  #if !defined(X_L6470_BSY_PIN)
+    #define X_L6470_BSY_PIN -1
+  #endif
+  L6470 l6470_x(X_L6470_CS_PIN, X_L6470_RST_PIN, X_L6470_BSY_PIN);
+#endif
+
+#if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
+  #if !defined(Y_L6470_RST_PIN) || (Y_L6470_RST_PIN < 0)
+    #error Y_L6470_RST_PIN (reset pin for the Y axis L6470 driver) must be defined and larger than -1
+  #endif
+  #if !defined(Y_L6470_BSY_PIN)
+    #define Y_L6470_BSY_PIN -1
+  #endif
+  L6470 l6470_y(Y_L6470_CS_PIN, Y_L6470_RST_PIN, Y_L6470_BSY_PIN);
+#endif
+
+#if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
+  #if !defined(Z_L6470_RST_PIN) || (Z_L6470_RST_PIN < 0)
+    #error Z_L6470_RST_PIN (reset pin for the Z axis L6470 driver) must be defined and larger than -1
+  #endif
+  #if !defined(Z_L6470_BSY_PIN)
+    #define Z_L6470_BSY_PIN -1
+  #endif
+  L6470 l6470_z(Z_L6470_CS_PIN, Z_L6470_RST_PIN, Z_L6470_BSY_PIN);
+#endif
+
+#if defined(E0_L6470_CS_PIN) && (E0_L6470_CS_PIN > -1)
+  #if !defined(E0_L6470_RST_PIN) || (E0_L6470_RST_PIN < 0)
+    #error E0_L6470_RST_PIN (reset pin for the E0 axis L6470 driver) must be defined and larger than -1
+  #endif
+  #if !defined(E0_L6470_BSY_PIN)
+    #define E0_L6470_BSY_PIN -1
+  #endif
+  L6470 l6470_e0(E0_L6470_CS_PIN, E0_L6470_RST_PIN, E0_L6470_BSY_PIN);
+#endif
+
+#if (EXTRUDERS > 1) && defined(E1_L6470_CS_PIN) && (E1_L6470_CS_PIN > -1)
+  #if !defined(E1_L6470_RST_PIN) || (E1_L6470_RST_PIN < 0)
+    #error E1_L6470_RST_PIN (reset pin for the E1 axis L6470 driver) must be defined and larger than -1
+  #endif
+  #if !defined(E1_L6470_BSY_PIN)
+    #define E1_L6470_BSY_PIN -1
+  #endif
+  L6470 l6470_e1(E1_L6470_CS_PIN, E1_L6470_RST_PIN, E1_L6470_BSY_PIN);
+#endif
+
+#if (EXTRUDERS > 2) && defined(E2_L6470_CS_PIN) && (E2_L6470_CS_PIN > -1)
+  #if !defined(E2_L6470_RST_PIN) || (E2_L6470_RST_PIN < 0)
+    #error E2_L6470_RST_PIN (reset pin for the E2 axis L6470 driver) must be defined and larger than -1
+  #endif
+  #if !defined(E2_L6470_BSY_PIN)
+    #define E2_L6470_BSY_PIN -1
+  #endif
+  L6470 l6470_e2(E2_L6470_CS_PIN, E2_L6470_RST_PIN, E2_L6470_BSY_PIN);
+#endif
+
+void init_6470(L6470& l, uint8_t microstepping, uint8_t krun, uint8_t khold)
+{
+	// The init() routine is called 
+	l.init();
+
+    // Set the STEP_MODE register:
+	//   - L6470_BUSY_EN controls whether the BUSY/SYNC pin reflects
+	//      the step frequency or the BUSY status of the chip. We 
+	//      want it to be the BUSY status.
+	//   - L6470_STEP_SEL_x is the microstepping rate.
+	//   - L6470_SYNC_SEL_x is the ratio of (micro)steps to toggles
+	//      on the BUSY/SYNC pin (when that pin is used for SYNC). 
+	//      Make it 1:1, despite not using that pin.
+	l.setParam(L6470_STEP_MODE,
+			   L6470_BUSY_EN |
+			     (unsigned long)(microstepping & L6470_STEP_MODE_STEP_SEL) | 
+			     L6470_SYNC_SEL_1);
+
+	// Configure the MAX_SPEED register:
+	//  This is the maximum number of microsteps per second allowed.
+	//  For any move or goto type function where no speed is specified,
+	//  this value will be used.
+	l.setParam(L6470_MAX_SPEED, l.maxSpdCalc(300));
+
+	// Configure the FS_SPD register:
+	//  Tthis is the speed at which the driver ceases microstepping and
+	//  goes to full stepping.  To disable full-step switching, you can
+	//  pass 0x3FF to this register rather than calling fsCalc().
+	l.setParam(L6470_FS_SPD, l.fsCalc(500));
+
+	// Configure the acceleration rate:
+	//  Writing ACC to 0xfff sets the acceleration and deceleration to
+	//  'infinite' (or as near as the driver can manage).  If ACC is set
+	//  to 0xfff, DEC is ignored. To get infinite deceleration without
+	//  infinite  acceleration, only hard stop will work.
+	l.setParam(L6470_ACC, 0xfff);
+
+	// Configure the overcurrent detection threshold
+	//  The constants for this are defined in the L6470.h file.
+	l.setParam(L6470_OCD_TH, L6470_OCD_TH_6000mA);
+
+	// Set up the CONFIG register as follows:
+	//  PWM frequency divisor = 1
+	//  PWM frequency multiplier = 2 (62.5kHz PWM frequency)
+	//  Slew rate is 530 V/us
+	//  Do NOT shut down bridges on overcurrent
+	//  Disable motor voltage compensation
+	//  Hard stop on switch low
+	//  16MHz internal oscillator, nothing on output
+	l.setParam(L6470_CONFIG, 
+			   L6470_CONFIG_PWM_DIV_1 | 
+			   L6470_CONFIG_PWM_MUL_2 | 
+			   L6470_CONFIG_SR_530V_us |
+			   L6470_CONFIG_OC_SD_DISABLE |  
+			   L6470_CONFIG_INT_16MHZ);
+
+	// Configure the RUN & HOLD KVAL
+	//  This defines the duty cycle of the PWM of the bridges during
+	//  running. 0xFF means that they are essentially NOT PWMed during
+	//  run; this MAY result in more power being dissipated than you
+	//  actually need for the task.  Setting this value too low may
+	//  result in failure to turn.  There are ACC, DEC, and HOLD KVAL
+	//  registers as well.
+	l.setParam(L6470_KVAL_RUN,  krun ? krun : 0x29);
+	l.setParam(L6470_KVAL_HOLD, khold ? khold : 0x29);
+
+	// Calling GetStatus() clears the UVLO bit in the status 
+	//  register, which is set by default on power-up. The driver 
+	//  may not run without that bit cleared by this read operation.
+	l.getStatus();
+}
+
+void init_L6470_drivers()
+{
+  #if defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
+	init_6470(l6470_x, X_L6470_USTEPS, X_L6470_KRUN, X_L6470_KHOLD);
+  #endif
+  #if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
+	init_6470(l6470_y, Y_L6470_USTEPS, Y_L6470_KRUN, Y_L6470_KHOLD);
+  #endif
+  #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
+	init_6470(l6470_z, Z_L6470_USTEPS, Z_L6470_KRUN, Z_L6470_KHOLD);
+  #endif
+  #if defined(E0_L6470_CS_PIN) && (E0_L6470_CS_PIN > -1)
+	init_6470(l6470_e0, E0_L6470_USTEPS, E0_L6470_KRUN, E0_L6470_KHOLD);
+  #endif
+  #if (EXTRUDERS > 1) && defined(E1_L6470_CS_PIN) && (E1_L6470_CS_PIN > -1)
+	init_6470(l6470_e1, E1_L6470_USTEPS, E1_L6470_KRUN, E1_L6470_KHOLD);
+  #endif
+  #if (EXTRUDERS > 2) && defined(E2_L6470_CS_PIN) && (E2_L6470_CS_PIN > -1)
+	init_6470(l6470_e2, E2_L6470_USTEPS, E2_L6470_KRUN, E2_L6470_KHOLD);
+  #endif
+}
+
+#endif
 
 // Some useful constants
 
@@ -353,6 +521,9 @@ ISR(TIMER1_COMPA_vect)
     // Set the direction bits (X_AXIS=A_AXIS and Y_AXIS=B_AXIS for COREXY)
     if((out_bits & (1<<X_AXIS))!=0){
       #ifdef DUAL_X_CARRIAGE
+		#if defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
+		  #error Not yet implemented for L6470 drivers
+		#endif
         if (extruder_duplication_enabled){
           WRITE(X_DIR_PIN, INVERT_X_DIR);
           WRITE(X2_DIR_PIN, INVERT_X_DIR);
@@ -363,7 +534,9 @@ ISR(TIMER1_COMPA_vect)
           else
             WRITE(X_DIR_PIN, INVERT_X_DIR);
         }
-      #else
+      #elif defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
+		l6470_x.setDir(L6470_REV);
+	  #else
         WRITE(X_DIR_PIN, INVERT_X_DIR);
       #endif        
       count_direction[X_AXIS]=-1;
@@ -380,23 +553,36 @@ ISR(TIMER1_COMPA_vect)
           else
             WRITE(X_DIR_PIN, !INVERT_X_DIR);
         }
+      #elif defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
+		l6470_x.setDir(L6470_FWD);
       #else
         WRITE(X_DIR_PIN, !INVERT_X_DIR);
       #endif        
       count_direction[X_AXIS]=1;
     }
     if((out_bits & (1<<Y_AXIS))!=0){
-      WRITE(Y_DIR_PIN, INVERT_Y_DIR);
+      #if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
+		l6470_y.setDir(L6470_REV);
+	  #else
+        WRITE(Y_DIR_PIN, INVERT_Y_DIR);
+	  #endif
 	  
 	  #ifdef Y_DUAL_STEPPER_DRIVERS
+		#if defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
+		  #error Not yet implemented for L6470 drivers
+		#endif
 	    WRITE(Y2_DIR_PIN, !(INVERT_Y_DIR == INVERT_Y2_VS_Y_DIR));
 	  #endif
 	  
       count_direction[Y_AXIS]=-1;
     }
     else{
-      WRITE(Y_DIR_PIN, !INVERT_Y_DIR);
-	  
+      #if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
+		l6470_y.setDir(L6470_FWD);
+	  #else
+		WRITE(Y_DIR_PIN, !INVERT_Y_DIR);
+	  #endif
+
 	  #ifdef Y_DUAL_STEPPER_DRIVERS
 	    WRITE(Y2_DIR_PIN, (INVERT_Y_DIR == INVERT_Y2_VS_Y_DIR));
 	  #endif
@@ -486,9 +672,16 @@ ISR(TIMER1_COMPA_vect)
     }
 
     if ((out_bits & (1<<Z_AXIS)) != 0) {   // -direction
-      WRITE(Z_DIR_PIN,INVERT_Z_DIR);
-      
+      #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
+		l6470_z.setDir(L6470_REV);
+	  #else
+		WRITE(Z_DIR_PIN,INVERT_Z_DIR);
+      #endif
+
       #ifdef Z_DUAL_STEPPER_DRIVERS
+        #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
+		  #error Not yet implemented for the L6470 driver
+		#endif
         WRITE(Z2_DIR_PIN,INVERT_Z_DIR);
       #endif
 
@@ -507,7 +700,11 @@ ISR(TIMER1_COMPA_vect)
       }
     }
     else { // +direction
-      WRITE(Z_DIR_PIN,!INVERT_Z_DIR);
+     #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
+		l6470_z.setDir(L6470_FWD);
+	  #else
+		WRITE(Z_DIR_PIN,!INVERT_Z_DIR);
+	  #endif
 
       #ifdef Z_DUAL_STEPPER_DRIVERS
         WRITE(Z2_DIR_PIN,!INVERT_Z_DIR);
@@ -572,7 +769,9 @@ ISR(TIMER1_COMPA_vect)
             else
               WRITE(X_STEP_PIN, !INVERT_X_STEP_PIN);
           }
-        #else
+        #elif defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
+		  l6470_x.move(X_L6470_NSTEPS);
+		#else
           WRITE(X_STEP_PIN, !INVERT_X_STEP_PIN);
         #endif        
           counter_x -= current_block->step_event_count;
@@ -588,23 +787,29 @@ ISR(TIMER1_COMPA_vect)
             else
               WRITE(X_STEP_PIN, INVERT_X_STEP_PIN);
           }
-        #else
+        #elif !defined(X_L6470_CS_PIN) || (X_L6470_CS_PIN <= -1)
           WRITE(X_STEP_PIN, INVERT_X_STEP_PIN);
         #endif
         }
 
         counter_y += current_block->steps_y;
         if (counter_y > 0) {
-          WRITE(Y_STEP_PIN, !INVERT_Y_STEP_PIN);
-		  
+          #if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
+			l6470_y.move(Y_L6470_NSTEPS);
+          #else
+            WRITE(Y_STEP_PIN, !INVERT_Y_STEP_PIN);
+		  #endif
+
 		  #ifdef Y_DUAL_STEPPER_DRIVERS
 			WRITE(Y2_STEP_PIN, !INVERT_Y_STEP_PIN);
 		  #endif
 		  
           counter_y -= current_block->step_event_count;
           count_position[Y_AXIS]+=count_direction[Y_AXIS];
-          WRITE(Y_STEP_PIN, INVERT_Y_STEP_PIN);
-		  
+          #if !defined(Y_L6470_CS_PIN) || (Y_L6470_CS_PIN <= -1)
+            WRITE(Y_STEP_PIN, INVERT_Y_STEP_PIN);
+		  #endif
+
 		  #ifdef Y_DUAL_STEPPER_DRIVERS
 			WRITE(Y2_STEP_PIN, INVERT_Y_STEP_PIN);
 		  #endif
@@ -612,15 +817,21 @@ ISR(TIMER1_COMPA_vect)
 
       counter_z += current_block->steps_z;
       if (counter_z > 0) {
-        WRITE(Z_STEP_PIN, !INVERT_Z_STEP_PIN);
-        
+          #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
+			l6470_z.move(Z_L6470_NSTEPS);
+          #else
+			WRITE(Z_STEP_PIN, !INVERT_Z_STEP_PIN);
+          #endif
+
         #ifdef Z_DUAL_STEPPER_DRIVERS
           WRITE(Z2_STEP_PIN, !INVERT_Z_STEP_PIN);
         #endif
 
         counter_z -= current_block->step_event_count;
         count_position[Z_AXIS]+=count_direction[Z_AXIS];
-        WRITE(Z_STEP_PIN, INVERT_Z_STEP_PIN);
+        #if !defined(Z_L6470_CS_PIN) || (Z_L6470_CS_PIN <= -1)
+          WRITE(Z_STEP_PIN, INVERT_Z_STEP_PIN);
+		#endif
         
         #ifdef Z_DUAL_STEPPER_DRIVERS
           WRITE(Z2_STEP_PIN, INVERT_Z_STEP_PIN);
@@ -633,7 +844,9 @@ ISR(TIMER1_COMPA_vect)
           WRITE_E_STEP(!INVERT_E_STEP_PIN);
           counter_e -= current_block->step_event_count;
           count_position[E_AXIS]+=count_direction[E_AXIS];
-          WRITE_E_STEP(INVERT_E_STEP_PIN);
+          #if !defined(USE_L6470) || (USE_L6470 == 0)
+            WRITE_E_STEP(INVERT_E_STEP_PIN);
+		  #endif
         }
       #endif //!ADVANCE
       step_events_completed += 1;
@@ -709,6 +922,9 @@ ISR(TIMER1_COMPA_vect)
 }
 
 #ifdef ADVANCE
+#if defined(USE_L6470) && (USE_L6470 != 0)
+#error Not yet implemented
+#endif
   unsigned char old_OCR0A;
   // Timer interrupt for E. e_steps is set in the main routine;
   // Timer 0 is shared with millies
@@ -770,6 +986,10 @@ void st_init()
   digipot_init(); //Initialize Digipot Motor Current
   microstep_init(); //Initialize Microstepping Pins
 
+  #if defined(USE_L6470) && (USE_L6470 != 0)
+  init_L6470_drivers();
+  #endif
+
   //Initialize Dir Pins
   #if defined(X_DIR_PIN) && X_DIR_PIN > -1
     SET_OUTPUT(X_DIR_PIN);
@@ -814,6 +1034,7 @@ void st_init()
   #if defined(Y_ENABLE_PIN) && Y_ENABLE_PIN > -1
     SET_OUTPUT(Y_ENABLE_PIN);
     if(!Y_ENABLE_ON) WRITE(Y_ENABLE_PIN,HIGH);
+
 	
 	#if defined(Y_DUAL_STEPPER_DRIVERS) && defined(Y2_ENABLE_PIN) && (Y2_ENABLE_PIN > -1)
 	  SET_OUTPUT(Y2_ENABLE_PIN);
@@ -1035,6 +1256,9 @@ void quickStop()
 
 #ifdef BABYSTEPPING
 
+#if defined(USE_L6470) && (USE_L6470 != 0)
+#error Not yet implemented for the L6470 drivers
+#endif
 
 void babystep(const uint8_t axis,const bool direction)
 {
@@ -1311,6 +1535,9 @@ void dac_commit_eeprom()
 void microstep_init()
 {
   #if defined(X_MS1_PIN) && X_MS1_PIN > -1
+  #if defined(USE_L6470) && (USE_L6470 != 0)
+  #error Not yet implemented for the L6470 driver chip
+  #endif
   const uint8_t microstep_modes[] = MICROSTEP_MODES;
   pinMode(X_MS2_PIN,OUTPUT);
   pinMode(Y_MS2_PIN,OUTPUT);

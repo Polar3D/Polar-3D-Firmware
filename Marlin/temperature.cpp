@@ -468,7 +468,30 @@ void manage_heater()
       pid_output = PID_MAX;
     }
   #endif
-
+  /*
+          // send data to led bar
+        Wire.beginTransmission(0x0A); // transmit to device #0a
+        if(current_temperature[e]>150)
+        	{
+        		Wire.write("102FF00001");
+        	}
+        	else if(current_temperature[e]>100 && currentTemperature[e]<151)
+        		{
+        			Wire.write("1027F00001");
+        		}
+        		else if(current_terperatrure[e]>50 && currentTemperature[e]<101)
+        			{
+        			  Wire.write("1022F00001");
+        			
+        			}
+        			else
+        			{
+        				Wire.write("102FFFFFF1");
+        			}
+        		}
+        	}
+        Wire.endTransmission();    // stop transmitting
+*/
     // Check if temperature is within the correct range
     if((current_temperature[e] > minttemp[e]) && (current_temperature[e] < maxttemp[e])) 
     {

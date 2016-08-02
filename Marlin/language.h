@@ -23,29 +23,11 @@
 
 #define PROTOCOL_VERSION "1.0"
 
-#define POLAR3D_VERSION "1.0.141023a"
+#define POLAR3D_VERSION "1.1.160605a"
 
-#if MOTHERBOARD == 7 || MOTHERBOARD == 71 || MOTHERBOARD == 72
-	#define MACHINE_NAME "Ultimaker"
-	#define FIRMWARE_URL "http://firmware.ultimaker.com"
-#elif MOTHERBOARD == 80
-	#define MACHINE_NAME "Rumba"
-	#define FIRMWARE_URL "https://github.com/ErikZalm/Marlin/"
-#elif MOTHERBOARD == 77
-	#define MACHINE_NAME "3Drag"
-	#define FIRMWARE_URL "http://3dprint.elettronicain.it/"
-#elif MOTHERBOARD == 81 | MOTHERBOARD == 84
-	#define MACHINE_NAME "Polar 3D"
-	#define FIRMWARE_URL "http://polar3d.com"
-#else
-	#ifdef CUSTOM_MENDEL_NAME
-		#define MACHINE_NAME CUSTOM_MENDEL_NAME
-	#else
-		#define MACHINE_NAME "Mendel"
-	#endif
+#define MACHINE_NAME "Polar 3D"
+#define FIRMWARE_URL "http://polar3d.com"
 
-	#define FIRMWARE_URL "http://www.mendel-parts.com"
-#endif
 
 #ifndef MACHINE_UUID
    #define MACHINE_UUID "00000000-0000-0000-0000-000000000000"

@@ -23,6 +23,7 @@
 
 #include "planner.h"
 
+#if !defined(USE_L6470) || (USE_L6470 == 0)
 #if EXTRUDERS > 2
   #define WRITE_E_STEP(v) { if(current_block->active_extruder == 2) { WRITE(E2_STEP_PIN, v); } else { if(current_block->active_extruder == 1) { WRITE(E1_STEP_PIN, v); } else { WRITE(E0_STEP_PIN, v); }}}
   #define NORM_E_DIR() { if(current_block->active_extruder == 2) { WRITE(E2_DIR_PIN, !INVERT_E2_DIR); } else { if(current_block->active_extruder == 1) { WRITE(E1_DIR_PIN, !INVERT_E1_DIR); } else { WRITE(E0_DIR_PIN, !INVERT_E0_DIR); }}}
@@ -42,6 +43,17 @@
   #define WRITE_E_STEP(v) WRITE(E0_STEP_PIN, v)
   #define NORM_E_DIR() WRITE(E0_DIR_PIN, !INVERT_E0_DIR)
   #define REV_E_DIR() WRITE(E0_DIR_PIN, INVERT_E0_DIR)
+#endif
+#else // USE_L6470
+#if EXTRUDERS > 2
+#error Not yet implemented for L6470 drivers
+#elif EXTRUDERS > 1
+#error Not yet implemented for L6470 drivers
+#else
+  #define WRITE_E_STEP(v) l6470_e0.move(E0_L6470_NSTEPS)
+  #define NORM_E_DIR() l6470_e0.setDir(L6470_FWD)
+  #define REV_E_DIR()  l6470_e0.setDir(L6470_REV)
+#endif
 #endif
 
 #ifdef ABORT_ON_ENDSTOP_HIT_FEATURE_ENABLED

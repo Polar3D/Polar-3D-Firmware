@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 
-// Polar 3D Production Firmware - 10/23/14
+// Polar 3D 1.1 Production Firmware - 2016-06-05a
 
 /*
     Reprap firmware based on Sprinter and grbl.
@@ -34,6 +34,8 @@
 
 #include "Configuration.h"
 #include "pins.h"
+
+#include <SoftwareSerial.h>
 
 #ifdef ULTRA_LCD
   #if defined(LCD_I2C_TYPE_PCF8575)
