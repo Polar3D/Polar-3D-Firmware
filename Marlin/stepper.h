@@ -51,8 +51,8 @@
 #error Not yet implemented for L6470 drivers
 #else
   #define WRITE_E_STEP(v) l6470_e0.move(E0_L6470_NSTEPS)
-  #define NORM_E_DIR() l6470_e0.setDir(L6470_FWD)
-  #define REV_E_DIR()  l6470_e0.setDir(L6470_REV)
+  #define NORM_E_DIR() l6470_e0.setDir(INVERT_E0_DIR ? L6470_FWD : L6470_REV)
+  #define REV_E_DIR()  l6470_e0.setDir(INVERT_E0_DIR ? L6470_REV : L6470_REV)
 #endif
 #endif
 

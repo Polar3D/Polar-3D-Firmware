@@ -535,7 +535,7 @@ ISR(TIMER1_COMPA_vect)
             WRITE(X_DIR_PIN, INVERT_X_DIR);
         }
       #elif defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
-		l6470_x.setDir(L6470_REV);
+		l6470_x.setDir(INVERT_X_DIR ? L6470_REV : L6470_FWD);
 	  #else
         WRITE(X_DIR_PIN, INVERT_X_DIR);
       #endif        
@@ -554,7 +554,7 @@ ISR(TIMER1_COMPA_vect)
             WRITE(X_DIR_PIN, !INVERT_X_DIR);
         }
       #elif defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
-		l6470_x.setDir(L6470_FWD);
+		l6470_x.setDir(INVERT_X_DIR ? L6470_FWD : L6470_REV);
       #else
         WRITE(X_DIR_PIN, !INVERT_X_DIR);
       #endif        
@@ -562,7 +562,7 @@ ISR(TIMER1_COMPA_vect)
     }
     if((out_bits & (1<<Y_AXIS))!=0){
       #if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
-		l6470_y.setDir(L6470_REV);
+		l6470_y.setDir(INVERT_Y_DIR ? L6470_REV : L6470_FWD);
 	  #else
         WRITE(Y_DIR_PIN, INVERT_Y_DIR);
 	  #endif
@@ -578,7 +578,7 @@ ISR(TIMER1_COMPA_vect)
     }
     else{
       #if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
-		l6470_y.setDir(L6470_FWD);
+		l6470_y.setDir(INVERT_Y_DIR ? L6470_FWD : L6470_REV);
 	  #else
 		WRITE(Y_DIR_PIN, !INVERT_Y_DIR);
 	  #endif
@@ -673,7 +673,7 @@ ISR(TIMER1_COMPA_vect)
 
     if ((out_bits & (1<<Z_AXIS)) != 0) {   // -direction
       #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
-		l6470_z.setDir(L6470_REV);
+		l6470_z.setDir(INVERT_Z_DIR : L6470_REV ? L6470_FWD);
 	  #else
 		WRITE(Z_DIR_PIN,INVERT_Z_DIR);
       #endif
@@ -701,7 +701,7 @@ ISR(TIMER1_COMPA_vect)
     }
     else { // +direction
      #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
-		l6470_z.setDir(L6470_FWD);
+		l6470_z.setDir(INVERT_Z_DIR ? L6470_FWD : L6470_REV);
 	  #else
 		WRITE(Z_DIR_PIN,!INVERT_Z_DIR);
 	  #endif
