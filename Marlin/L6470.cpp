@@ -525,7 +525,11 @@ static void spiConfig(void)
 //            4 ==> F_CPU /  32 =  0.5 MHz
 //            5 ==> F_CPU /  64 =  250 KHz
 //            6 ==> F_CPU / 128 =  125 HHz
-     SPCR = (1 << SPE) | (1 << MSTR) | (spi_rate >> 1);
+//
+// MODE3 = 0x0C == (1 << CPOL) | (1 << CPHA)
+
+	 SPCR = (1 << SPE) | (1 << MSTR) | (1 << CPOL) | (1 << CPHA) | \
+		 (spi_rate >> 1);
      SPSR = (spi_rate & 1) || (spi_rate == 6) ? 0 : (1 << SPI2X);
 #endif
 }
