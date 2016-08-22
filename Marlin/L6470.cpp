@@ -513,14 +513,14 @@ static void spiConfig(void)
 byte L6470::xfer(byte data)
 {
 	byte data_out;
-	SPI.begin();
-	spiConfig();
+	// SPI.begin();
+	// spiConfig();
 	digitalWrite(cs_pin, LOW);
 	// SPI.transfer() both shifts a byte out on the MOSI pin AND receives a
 	//  byte in on the MISO pin.
 	data_out = SPI.transfer(data);
 	digitalWrite(cs_pin, HIGH);
-	SPI.end();
+	// SPI.end();
 	return data_out;
 }
 
@@ -570,5 +570,5 @@ void L6470::init()
 	//  SPI_MODE3 (clock idle high, latch data on rising edge of clock)
 	SPI.begin();
 	spiConfig();
-	SPI.end();
+	// SPI.end();
 }
