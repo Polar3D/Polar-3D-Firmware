@@ -438,23 +438,9 @@ void servo_init()
 
 void setup()
 {
-  
-  // turn on chassis fan
-  SET_OUTPUT(20);
-  WRITE(20,HIGH);
-  
-  // enable stepper motor controllers
-  SET_OUTPUT(42);
-  SET_OUTPUT(43);
-  SET_OUTPUT(44);
-  SET_OUTPUT(45);
-  
-  WRITE(42,HIGH);
-  WRITE(43,HIGH);
-  WRITE(44,HIGH);
-  WRITE(45,HIGH);
-        
-  
+  // turn on Raspberry Pi
+  pinMode(10, OUTPUT);
+  digitalWrite(10, HIGH);
         
 #ifdef DISABLE_JTAG
   MCUCR = 0x80;
@@ -517,11 +503,6 @@ void setup()
   #if defined(CONTROLLERFAN_PIN) && CONTROLLERFAN_PIN > -1
     SET_OUTPUT(CONTROLLERFAN_PIN); //Set pin used for driver cooling fan
   #endif
-
-  // No longer needed for Polar Bot 1.1
-  // dcn, 2 August 2016
-  // setup I2C to LED bar
-  // Wire.begin();
 }
 
 
@@ -570,11 +551,6 @@ void loop()
   manage_inactivity();
   checkHitEndstops();
   lcd_update();
-  
-  // turn on chassis fan
-  SET_OUTPUT(20);
-  WRITE(20,HIGH);
-        
 }
 
 void get_command()
