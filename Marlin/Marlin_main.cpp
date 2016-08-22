@@ -1099,7 +1099,8 @@ void JumpToBootloader(void)
 	TIMSK0 = 0; TIMSK1 = 0; TIMSK2 = 0; TIMSK3 = 0; UCSR1B = 0; TWCR = 0;
 	DDRA = 0; DDRB = 0; DDRC = 0; DDRD = 0; DDRE = 0; DDRF = 0;
 	PORTA = 0; PORTB = 0; PORTC = 0; PORTD = 0; PORTE = 0; PORTF = 0;
-	
+	PCMSK0 = 0;
+
 	// Jump to Bootloader start address
 	asm volatile("jmp 0x1F000");
 	while (1) ;
