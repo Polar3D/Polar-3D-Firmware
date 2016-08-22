@@ -1516,6 +1516,8 @@
 //Disable JTAG pins so they can be used for the Extrudrboard
 #define DISABLE_JTAG       true
 
+#if MOTHERBOARD != 85
+
 #define X_STEP_PIN          0
 #define X_DIR_PIN           1
 #define X_ENABLE_PIN       39 //39
@@ -1539,6 +1541,8 @@
 #define E2_STEP_PIN        26
 #define E2_DIR_PIN         27
 #define E2_ENABLE_PIN      45
+
+#endif
 
 #define HEATER_0_PIN       21  // Extruder
 #define HEATER_1_PIN       -1
@@ -1566,7 +1570,7 @@
   
   #define Y_STOP_PIN         12
   #define Y_MIN_PIN 	     12
-  #define Y_MAX_PIN	     12
+  #define Y_MAX_PIN 	     12
   
   #define Z_STOP_PIN         36
   #define Z_MIN_PIN          36
@@ -1584,9 +1588,9 @@
   #define X_L6470_USTEPS   ( L6470_STEP_SEL_1_64 ) // Run driver at this microstepping level (e.g., 1/64th)
   #define X_L6470_NSTEPS      4                    // Number of driver steps to achieve _NORM_USTEPS
                                                    //    (( 1 << X_L6470_USTEPS ) / X_NORM_USTEPS)
-  #define X_L6470_CS_PIN      4 // PD4; pkg pin 29
-  #define X_L6470_RST_PIN    42 // PF4; pkg pin 57
-  #define X_L6470_BSY_PIN    19 // PE7; pkg pin 02
+  #define X_L6470_CS_PIN      4 // PD4; pkg pin 29  ICP1
+  #define X_L6470_RST_PIN    42 // PF4; pkg pin 57  ADC4 / TCK
+  #define X_L6470_BSY_PIN    19 // PE7; pkg pin 02  INT.7 / AIN.1 / UVcon
   #define X_STOP_PIN         35
   #define X_MIN_PIN          35
   #define X_MAX_PIN          35
@@ -1596,9 +1600,9 @@
   #define Y_NORM_USTEPS      16
   #define Y_L6470_USTEPS   ( L6470_STEP_SEL_1_64 )
   #define Y_L6470_NSTEPS      4 // (( 1 << Y_L6470_USTEPS ) / Z_NORM_USTEPS)
-  #define Y_L6470_CS_PIN      5 // PD5; pkg pin 30
-  #define Y_L6470_RST_PIN    43 // PF5; pkg pin 56
-  #define Y_L6470_BSY_PIN    18 // PE6; pkg pin 01
+  #define Y_L6470_CS_PIN      5 // PD5; pkg pin 30  XCK1
+  #define Y_L6470_RST_PIN    43 // PF5; pkg pin 56  ADC6 / TMS
+  #define Y_L6470_BSY_PIN    18 // PE6; pkg pin 01  INT.6 / AIN.0
   #define Y_STOP_PIN         12
   #define Y_MIN_PIN 	     12
   #define Y_MAX_PIN	         12
@@ -1623,11 +1627,11 @@
   #define E0_L6470_CS_PIN     7 // PD7; pkg pin 32
   #define E0_L6470_RST_PIN   45 // PF7; pkg pin 54
   #define E0_L6470_BSY_PIN   13 // PC3; pkg pin 38
-  #define E0_L6470_KRUN      230 // 230/255 -> 90%
-  #define E0_L6470_KHOLD      63 //  63/255 -> 25%
+  #define E0_L6470_KRUN     230 // 230/255 -> 90%
+  #define E0_L6470_KHOLD     63 //  63/255 -> 25%
 
-  #define TEMP_0_PIN          1  // Extruder / Analog pin numbering
-  #define TEMP_BED_PIN        0  // Bed / Analog pin numbering
+  #define TEMP_0_PIN          1  // Arduino D39; PF1 / ADC1; pkg pin 60; Extruder / Analog pin numbering
+  #define TEMP_BED_PIN        0  // Arduino D38; PF0 / ADC0; pkg pin 61; Bed / Analog pin numbering
   #define SDSS               20
 
   #if defined(X_DIR_PIN)
@@ -1681,13 +1685,13 @@
   #define Z_MIN_PIN          36
   #define Z_MAX_PIN          36
   
-  #define TEMP_0_PIN          1  // Extruder / Analog pin numbering
-  #define TEMP_BED_PIN        0  // Bed / Analog pin numbering
+  #define TEMP_0_PIN          1  // D39 Extruder / Analog pin numbering
+  #define TEMP_BED_PIN        0  // D38 Bed / Analog pin numbering
   #define SDSS               26
 #endif
 
-#define TEMP_1_PIN         2
-#define TEMP_2_PIN         3
+#define TEMP_1_PIN         2 // D40; ADC2
+#define TEMP_2_PIN         3 // D41; ADC3
 
 #define SDPOWER            -1
 #define LED_PIN            -1
@@ -1727,13 +1731,6 @@
   #define encrot1 2
   #define encrot2 3
   #define encrot3 1
-#endif
-
-#ifndef SDSUPPORT
-// these pins are defined in the SD library if building with SD support
-  #define SCK_PIN           9
-  #define MISO_PIN         11
-  #define MOSI_PIN         10
 #endif
 
 #endif  // MOTHERBOARD == 8 (Teensylu) or 81 (Printrboard) or 84 (Printrboard J)
