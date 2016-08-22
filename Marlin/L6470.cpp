@@ -14,6 +14,13 @@
 #include <SPI.h>
 #include "L6470.h"
 
+// Bill: you can try direct SPI code and none of the Arduino SPI
+#define SPI_DIRECT 0
+
+#if SPI_DIRECT == 1
+#include <util/delay.h>
+#endif
+
 static void spiConfig(void);
 
 //L6470_commands.ino - Contains high-level command implementations- movement
@@ -501,9 +508,26 @@ unsigned long L6470::paramXfer(unsigned long value, byte bit_len)
 
 static void spiConfig(void)
 {
+#if !defined(SPI_DIRECT) || SPI_DIRECT == 0
 	SPI.setBitOrder(MSBFIRST);
 	SPI.setClockDivider(SPI_CLOCK_DIV2); // or 2, 8, 16, 32, 64
 	SPI.setDataMode(SPI_MODE3);
+#else
+	// Bill SPI can be sped up by changing spi_rate.  Might try 2 -> 2.0 MHz
+	static uint8_t spi_rate = 6;
+
+// Set SCK rate to F_CPU / 2^(1 + spi_rate), 0 <= spi_rate <= 6
+
+// spi_rate = 0 ==> F_CPU /   2 =  8.0 MHz
+//            1 ==> F_CPU /   4 =  4.0 MHz
+//            2 ==> F_CPU /   8 =  2.0 MHz
+//            3 ==> F_CPU /  16 =  1.0 MHz
+//            4 ==> F_CPU /  32 =  0.5 MHz
+//            5 ==> F_CPU /  64 =  250 KHz
+//            6 ==> F_CPU / 128 =  125 HHz
+     SPCR = (1 << SPE) | (1 << MSTR) | (spi_rate >> 1);
+     SPSR = (spi_rate & 1) || (spi_rate == 6) ? 0 : (1 << SPI2X);
+#endif
 }
 
 // This simple function shifts a byte out over SPI and receives a byte over
@@ -513,6 +537,9 @@ static void spiConfig(void)
 byte L6470::xfer(byte data)
 {
 	byte data_out;
+
+#if !defined(SPI_DIRECT) || SPI_DIRECT == 0
+
 	// SPI.begin();
 	// spiConfig();
 	digitalWrite(cs_pin, LOW);
@@ -521,6 +548,44 @@ byte L6470::xfer(byte data)
 	data_out = SPI.transfer(data);
 	digitalWrite(cs_pin, HIGH);
 	// SPI.end();
+
+#else
+
+	uint8_t tries = 0;
+
+	/* select the device */
+	digitalWrite(cs_pin, LOW);
+
+	/* ensure 350ns delay - a bit extra is fine */
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+
+	/* send the data */
+	SPDR = data;
+
+    /* wait for byte to be shifted out */
+    while (!(SPSR & (1 << SPIF)) && (tries++ < 100)) _delay_us(1);
+
+    SPSR &= ~(1 << SPIF);
+
+	data_out = SPDR;
+
+	/* deselect the device */
+	digitalWrite(cs_pin, HIGH);
+
+	/*
+	 *   Bill clever code to signal a timeout can go here
+	 *  if (tries >= 100) {
+	 *    do something clever like light an LED
+	 *  }
+	 */
+
+#endif
+	
 	return data_out;
 }
 
