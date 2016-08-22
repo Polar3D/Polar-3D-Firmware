@@ -673,7 +673,7 @@ ISR(TIMER1_COMPA_vect)
 
     if ((out_bits & (1<<Z_AXIS)) != 0) {   // -direction
       #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
-		l6470_z.setDir(INVERT_Z_DIR : L6470_REV ? L6470_FWD);
+		l6470_z.setDir(INVERT_Z_DIR ? L6470_REV : L6470_FWD);
 	  #else
 		WRITE(Z_DIR_PIN,INVERT_Z_DIR);
       #endif
