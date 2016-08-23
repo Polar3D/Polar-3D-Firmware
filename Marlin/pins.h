@@ -1580,6 +1580,10 @@
   #define TEMP_BED_PIN        0  // Bed / Analog pin numbering
   #define SDSS               20
 #elif MOTHERBOARD == 85 // Printrboard ref J
+
+  // Enable pin for attached Raspberry Pi
+  #define RPI_ENABLE_PIN     10
+
   #define USE_L6470           1 // Compile for STmicro L6470 support
 
   // For the time being, use the same KVAL_RUN and KVAL_HOLD for all drivers

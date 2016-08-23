@@ -439,8 +439,8 @@ void servo_init()
 void setup()
 {
   // turn on Raspberry Pi
-  pinMode(10, OUTPUT);
-  digitalWrite(10, HIGH);
+  pinMode(RPI_ENABLE_PIN, OUTPUT);
+  digitalWrite(RPI_ENABLE_PIN, HIGH);
         
 #ifdef DISABLE_JTAG
   MCUCR = 0x80;
