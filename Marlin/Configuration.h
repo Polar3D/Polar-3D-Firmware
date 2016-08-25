@@ -16,7 +16,7 @@
 // startup. Implementation of an idea by Prof Braino to inform user that any changes made to this
 // build by the user have been successfully uploaded into firmware.
 #define STRING_VERSION_CONFIG_H __DATE__ " " __TIME__ // build date and time
-#define STRING_CONFIG_H_AUTHOR "(wsteele, Printrboard firmware)" // Who made the changes.
+#define STRING_CONFIG_H_AUTHOR "(Polar3D, Polar 3D Marlin Firmware)" // Who made the changes.
 
 // SERIAL_PORT selects which serial port should be used for communication with the host.
 // This allows the connection of wireless adapters (for instance) to non-default port pins.
@@ -70,6 +70,7 @@
 // 21 = Elefu Ra Board (v3)
 
 #ifndef MOTHERBOARD
+#warning **** 85
 #define MOTHERBOARD 85  // Printrboard rev J
 #endif
 
@@ -232,7 +233,7 @@
 //if PREVENT_DANGEROUS_EXTRUDE is on, you can still disable (uncomment) very long bits of extrusion separately.
 #define PREVENT_LENGTHY_EXTRUDE
 
-#define EXTRUDE_MINTEMP 170
+#define EXTRUDE_MINTEMP 160
 #define EXTRUDE_MAXLENGTH (X_MAX_LENGTH+Y_MAX_LENGTH) //prevent extrusion of very large distances.
 
 //===========================================================================
@@ -294,7 +295,7 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 #define INVERT_X_DIR false    // for Mendel set to false, for Orca set to true
 #define INVERT_Y_DIR true    // for Mendel set to true, for Orca set to false
 #define INVERT_Z_DIR false     // for Mendel set to false, for Orca set to true
-#define INVERT_E0_DIR true     // for direct drive extruder v9 set to true, for geared extruder set to false
+#define INVERT_E0_DIR false     // for direct drive extruder v9 set to true, for geared extruder set to false
 #define INVERT_E1_DIR false    // for direct drive extruder v9 set to true, for geared extruder set to false
 #define INVERT_E2_DIR false   // for direct drive extruder v9 set to true, for geared extruder set to false
 
@@ -325,8 +326,8 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
   #ifdef ENABLE_AUTO_BED_LEVELING
 
   // these are the positions on the bed to do the probing
-  #define LEFT_PROBE_BED_POSITION 10
-  #define RIGHT_PROBE_BED_POSITION 90 //X_MAX_LENGTH-10
+  #define LEFT_PROBE_BED_POSITION 5
+  #define RIGHT_PROBE_BED_POSITION 50 //X_MAX_LENGTH-10
   #define BACK_PROBE_BED_POSITION 180 //Y_MAX_LENGTH-10
   #define FRONT_PROBE_BED_POSITION 0 //10
 
@@ -392,8 +393,8 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 
 
 // A4980 Configuration Settings
-#define A4980_CONFIG0_DEFAULT_1    0b00100111
-#define A4980_CONFIG0_DEFAULT_2    0b01000110
+//#define A4980_CONFIG0_DEFAULT_1    0b00100111
+//#define A4980_CONFIG0_DEFAULT_2    0b01000110
 
 //// MOVEMENT SETTINGS
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E
@@ -402,8 +403,8 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 // default settings
 
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {53.91,41.48148,3200,100.4}
-#define DEFAULT_MAX_FEEDRATE          {700, 1000, 10, 1000}    // (mm/sec)    
-#define DEFAULT_MAX_ACCELERATION      {1000,1000,20,3000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
+#define DEFAULT_MAX_FEEDRATE          {700, 1000, 300, 1000}    // (mm/sec)    
+#define DEFAULT_MAX_ACCELERATION      {1000,1000,100,3000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 
 #define DEFAULT_ACCELERATION          1000    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
 #define DEFAULT_RETRACT_ACCELERATION  3000   // X, Y, Z and E max acceleration in mm/s^2 for retracts
@@ -437,11 +438,11 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 
 // Preheat Constants
 #define PLA_PREHEAT_HOTEND_TEMP 180
-#define PLA_PREHEAT_HPB_TEMP 70
+#define PLA_PREHEAT_HPB_TEMP 0
 #define PLA_PREHEAT_FAN_SPEED 255   // Insert Value between 0 and 255
 
 #define ABS_PREHEAT_HOTEND_TEMP 240
-#define ABS_PREHEAT_HPB_TEMP 100
+#define ABS_PREHEAT_HPB_TEMP 0
 #define ABS_PREHEAT_FAN_SPEED 255   // Insert Value between 0 and 255
 
 //LCD and SD support
