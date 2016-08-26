@@ -334,6 +334,7 @@ void init_L6470_drivers()
 	init_6470(l6470_z, Z_L6470_USTEPS, (float)Z_L6470_MAX_SPD, (float)Z_L6470_FS_SPD,
 			  Z_L6470_KRUN, l6470_khold[2]);
 	// l6470_z.setParam(L6470_MIN_SPEED, 0x0FFF);
+	// l6470_z.setLSPDOpt(true);
   #endif
   #if defined(E0_L6470_CS_PIN) && (E0_L6470_CS_PIN > -1)
 	init_6470(l6470_e0, E0_L6470_USTEPS, (float)E0_L6470_MAX_SPD, (float)E0_L6470_FS_SPD,
@@ -864,6 +865,7 @@ ISR(TIMER1_COMPA_vect)
           #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
 		    busy_count = 0;
 		    while ((digitalRead(Z_L6470_BSY_PIN) == LOW)  && (++busy_count < 100)) ;
+			// Bill: l6470_z.softStop();
 			l6470_z.move(Z_L6470_NSTEPS << step_loops_shift);
           #else
 			WRITE(Z_STEP_PIN, !INVERT_Z_STEP_PIN);
