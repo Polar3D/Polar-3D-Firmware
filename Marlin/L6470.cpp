@@ -15,7 +15,7 @@
 #include "L6470.h"
 
 // Bill: you can try direct SPI code and none of the Arduino SPI
-#define SPI_DIRECT 0
+#define SPI_DIRECT 1
 
 #if SPI_DIRECT == 1
 #include <util/delay.h>
@@ -509,12 +509,13 @@ unsigned long L6470::paramXfer(unsigned long value, byte bit_len)
 static void spiConfig(void)
 {
 #if !defined(SPI_DIRECT) || SPI_DIRECT == 0
+	SPI.begin();
 	SPI.setBitOrder(MSBFIRST);
 	SPI.setClockDivider(SPI_CLOCK_DIV2); // or 2, 8, 16, 32, 64
 	SPI.setDataMode(SPI_MODE3);
 #else
 	// Bill SPI can be sped up by changing spi_rate.  Might try 2 -> 2.0 MHz
-	static uint8_t spi_rate = 6;
+	static uint8_t spi_rate = 0;
 
 // Set SCK rate to F_CPU / 2^(1 + spi_rate), 0 <= spi_rate <= 6
 
@@ -527,7 +528,6 @@ static void spiConfig(void)
 //            6 ==> F_CPU / 128 =  125 HHz
 //
 // MODE3 = 0x0C == (1 << CPOL) | (1 << CPHA)
-
 	 SPCR = (1 << SPE) | (1 << MSTR) | (1 << CPOL) | (1 << CPHA) | \
 		 (spi_rate >> 1);
      SPSR = (spi_rate & 1) || (spi_rate == 6) ? 0 : (1 << SPI2X);
@@ -544,18 +544,13 @@ byte L6470::xfer(byte data)
 
 #if !defined(SPI_DIRECT) || SPI_DIRECT == 0
 
-	// SPI.begin();
-	// spiConfig();
 	digitalWrite(cs_pin, LOW);
 	// SPI.transfer() both shifts a byte out on the MOSI pin AND receives a
 	//  byte in on the MISO pin.
 	data_out = SPI.transfer(data);
 	digitalWrite(cs_pin, HIGH);
-	// SPI.end();
 
 #else
-
-	uint8_t tries = 0;
 
 	/* select the device */
 	digitalWrite(cs_pin, LOW);
@@ -572,14 +567,32 @@ byte L6470::xfer(byte data)
 	SPDR = data;
 
     /* wait for byte to be shifted out */
-    while (!(SPSR & (1 << SPIF)) && (tries++ < 100)) _delay_us(1);
+    // while (!(SPSR & (1 << SPIF)) && (tries++ < 100)) _delay_us(1);
+    while (!(SPSR & (1 << SPIF))) { /* intentionally blank */ };
 
-    SPSR &= ~(1 << SPIF);
+    // SPSR &= ~(1 << SPIF);
 
 	data_out = SPDR;
 
 	/* deselect the device */
 	digitalWrite(cs_pin, HIGH);
+
+	/* ensure 800ns delay - a bit extra is fine */
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+#if 0
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
+#endif
 
 	/*
 	 *   Bill clever code to signal a timeout can go here
@@ -612,11 +625,6 @@ void L6470::init()
 		setup_done = 1;
 	}
 
-	// set up the input/output pins for the application.
-	pinMode(10, OUTPUT);  // The SPI peripheral REQUIRES the hardware SS pin-
-	//  pin 10- to be an output. This is in here just
-	//  in case some future user makes something other
-	//  than pin 10 the SS pin.
 	pinMode(cs_pin, OUTPUT);
 	digitalWrite(cs_pin, HIGH);
 
@@ -637,7 +645,5 @@ void L6470::init()
 	//  most significant bit first,
 	//  SPI clock not to exceed 5MHz,
 	//  SPI_MODE3 (clock idle high, latch data on rising edge of clock)
-	SPI.begin();
 	spiConfig();
-	// SPI.end();
 }
