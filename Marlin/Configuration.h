@@ -70,7 +70,6 @@
 // 21 = Elefu Ra Board (v3)
 
 #ifndef MOTHERBOARD
-#warning **** 85
 #define MOTHERBOARD 85  // Printrboard rev J
 #endif
 
@@ -402,9 +401,9 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 
 // default settings
 
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {53.91,41.48148,3200,100.4}
-#define DEFAULT_MAX_FEEDRATE          {700, 1000, 300, 1000}    // (mm/sec)    
-#define DEFAULT_MAX_ACCELERATION      {1000,1000,100,3000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {53.91, 41.48148, 3200, 100.4}
+#define DEFAULT_MAX_FEEDRATE          { 150,  150,  30, 1000}    // (mm/sec)    
+#define DEFAULT_MAX_ACCELERATION      {1000, 1000, 250, 3000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 
 #define DEFAULT_ACCELERATION          1000    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
 #define DEFAULT_RETRACT_ACCELERATION  3000   // X, Y, Z and E max acceleration in mm/s^2 for retracts
