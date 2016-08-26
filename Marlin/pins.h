@@ -1638,7 +1638,10 @@
   #define E0_L6470_RST_PIN   45 // PF7; pkg pin 54
   #define E0_L6470_BSY_PIN   13 // PC3; pkg pin 38
   #define E0_L6470_KRUN     230 // 230/255 -> 90%
-  #define E0_L6470_KHOLD     63 //  63/255 -> 25%
+//#define E0_L6470_KHOLD     63 //  63/255 -> 25% -- too weak; easy to skip motor holding filament w/fingers
+//#define E0_L6470_KHOLD     90 //  90/255 -> 35% -- so so; not too hard to skip motor holding filament
+  #define E0_L6470_KHOLD    102 // 102/255 -> 40% -- quite strong; hard to skip motor holding filament
+//#define E0_L6470_KHOLD    127 // 127/255 -> 50% -- very strong; hard to skip motor holding filament
   #define E0_L6470_MAX_SPD  600
   #define E0_L6470_FS_SPD  1000
 
