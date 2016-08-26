@@ -333,6 +333,7 @@ void init_L6470_drivers()
   #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
 	init_6470(l6470_z, Z_L6470_USTEPS, (float)Z_L6470_MAX_SPD, (float)Z_L6470_FS_SPD,
 			  Z_L6470_KRUN, l6470_khold[2]);
+	// l6470_z.setParam(L6470_MIN_SPEED, 0x0FFF);
   #endif
   #if defined(E0_L6470_CS_PIN) && (E0_L6470_CS_PIN > -1)
 	init_6470(l6470_e0, E0_L6470_USTEPS, (float)E0_L6470_MAX_SPD, (float)E0_L6470_FS_SPD,
@@ -923,7 +924,7 @@ ISR(TIMER1_COMPA_vect)
           advance += advance_rate;
         }
 #else
-	  advance << step_loops_shift;
+	  advance += advance_rate << step_loops_shift;
 #endif
         //if(advance > current_block->advance) advance = current_block->advance;
         // Do E steps + advance steps
@@ -956,7 +957,7 @@ ISR(TIMER1_COMPA_vect)
           advance -= advance_rate;
         }
 	  #else
-		advance >> step_loops_shift;
+		advance -= advance_rate << step_loops_shift;
 	  #endif
         if(advance < final_advance) advance = final_advance;
         // Do E steps + advance steps
