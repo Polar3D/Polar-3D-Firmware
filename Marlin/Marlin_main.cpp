@@ -2309,7 +2309,7 @@ void process_commands()
 		{
 			if(code_seen(axis_codes[i]))
 			{
-				uint8_t kh = code_value();
+				uint8_t kh = (uint8_t)(code_value() * 255.0 / 100.0);
 				if (kh > 204) kh = 204;  // limit to a max of 80%
 				l6470_khold[i] = kh;
 				switch(i) {

@@ -213,12 +213,12 @@ void Config_PrintSettings()
 #endif
 #if USE_L6470 == 1
     SERIAL_ECHO_START;
-    SERIAL_ECHOLNPGM("Stepper motor holding current (0-204):");
+    SERIAL_ECHOLNPGM("Stepper motor holding current (%):");
     SERIAL_ECHO_START;
-    SERIAL_ECHOPAIR("  M213 X" , l6470_khold[0] );
-    SERIAL_ECHOPAIR(" Y" , l6470_khold[1] );
-    SERIAL_ECHOPAIR(" Z" , l6470_khold[2] );
-    SERIAL_ECHOPAIR(" E" , l6470_khold[3] );
+    SERIAL_ECHOPAIR("  M213 X" , (uint8_t)(l6470_khold[0] * 100.0 / 255.0) );
+    SERIAL_ECHOPAIR(" Y" , (uint8_t)(l6470_khold[1] * 100.0 / 255.0) );;
+    SERIAL_ECHOPAIR(" Z" , (uint8_t)(l6470_khold[2] * 100.0 / 255.0) );
+    SERIAL_ECHOPAIR(" E" , (uint8_t)(l6470_khold[3] * 100.0 / 255.0) );
     SERIAL_ECHOLN("");
 #endif
 }
