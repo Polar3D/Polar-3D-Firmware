@@ -1600,6 +1600,8 @@
   #define X_MAX_PIN          35
   #define X_L6470_KRUN      230 // KVAL_RUN PWM duty cycle, 230/255 -> 90%
   #define X_L6470_KHOLD      63 // KVAL_HOLD PWM duty cycle, 63/255 -> 25%
+  #define X_L6470_MAX_SPD   600
+  #define X_L6470_FS_SPD   1000
 
   #define Y_NORM_USTEPS      16
   #define Y_L6470_USTEPS   ( L6470_STEP_SEL_1_64 )
@@ -1612,6 +1614,8 @@
   #define Y_MAX_PIN	         12
   #define Y_L6470_KRUN      230 // 230/255 -> 90%
   #define Y_L6470_KHOLD      63 //  63/255 -> 25%
+  #define Y_L6470_MAX_SPD   600
+  #define Y_L6470_FS_SPD   1000
 
   #define Z_NORM_USTEPS      16
   #define Z_L6470_USTEPS   ( L6470_STEP_SEL_1_64 )
@@ -1624,6 +1628,8 @@
   #define Z_MAX_PIN          36
   #define Z_L6470_KRUN      230 // 230/255 -> 90%
   #define Z_L6470_KHOLD      63 //  63/255 -> 25%
+  #define Z_L6470_MAX_SPD  3000
+  #define Z_L6470_FS_SPD   5000
 
   #define E0_NORM_USTEPS     16
   #define E0_L6470_USTEPS   ( L6470_STEP_SEL_1_64 )
@@ -1633,6 +1639,9 @@
   #define E0_L6470_BSY_PIN   13 // PC3; pkg pin 38
   #define E0_L6470_KRUN     230 // 230/255 -> 90%
   #define E0_L6470_KHOLD     63 //  63/255 -> 25%
+  #define E0_L6470_MAX_SPD  600
+  #define E0_L6470_FS_SPD  1000
+
 
   #define TEMP_0_PIN          1  // Arduino D39; PF1 / ADC1; pkg pin 60; Extruder / Analog pin numbering
   #define TEMP_BED_PIN        0  // Arduino D38; PF0 / ADC0; pkg pin 61; Bed / Analog pin numbering

@@ -50,7 +50,10 @@
 #elif EXTRUDERS > 1
 #error Not yet implemented for L6470 drivers
 #else
-  #define WRITE_E_STEP(v) l6470_e0.move(E0_L6470_NSTEPS << step_loops_shift)
+#define WRITE_E_STEP(v) { \
+		busy_count = 0;													\
+		while((digitalRead(X_L6470_BSY_PIN) == LOW)  && (++busy_count < 100)) ; \
+		l6470_e0.move(E0_L6470_NSTEPS << step_loops_shift); }
   #define NORM_E_DIR() l6470_e0.setDir(INVERT_E0_DIR ? L6470_FWD : L6470_REV)
   #define REV_E_DIR()  l6470_e0.setDir(INVERT_E0_DIR ? L6470_REV : L6470_REV)
 #endif

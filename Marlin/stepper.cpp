@@ -68,6 +68,7 @@ static unsigned short acc_step_rate; // needed for deccelaration start point
 static char step_loops;
 static unsigned short step_loops_nominal;
 #else
+static uint8_t busy_count;
 static uint8_t step_loops_shift;
 static unsigned short step_loops_shift_nominal;
 #endif
@@ -242,7 +243,8 @@ asm volatile ( \
   L6470 l6470_e2(E2_L6470_CS_PIN, E2_L6470_RST_PIN, E2_L6470_BSY_PIN);
 #endif
 
-void init_6470(L6470& l, uint8_t microstepping, uint8_t krun, uint8_t khold)
+void init_6470(L6470& l, uint8_t microstepping, float max_speed, float fs_speed,
+			   uint8_t krun, uint8_t khold)
 {
 	// The init() routine is called 
 	l.init();
@@ -264,13 +266,13 @@ void init_6470(L6470& l, uint8_t microstepping, uint8_t krun, uint8_t khold)
 	//  This is the maximum number of microsteps per second allowed.
 	//  For any move or goto type function where no speed is specified,
 	//  this value will be used.
-	l.setParam(L6470_MAX_SPEED, l.maxSpdCalc(300));
+	l.setParam(L6470_MAX_SPEED, l.maxSpdCalc(max_speed));
 
 	// Configure the FS_SPD register:
-	//  Tthis is the speed at which the driver ceases microstepping and
+	//  This is the speed at which the driver ceases microstepping and
 	//  goes to full stepping.  To disable full-step switching, you can
 	//  pass 0x3FF to this register rather than calling fsCalc().
-	l.setParam(L6470_FS_SPD, l.fsCalc(500));
+	l.setParam(L6470_FS_SPD, l.fsCalc(fs_speed));
 
 	// Configure the acceleration rate:
 	//  Writing ACC to 0xfff sets the acceleration and deceleration to
@@ -317,22 +319,28 @@ void init_6470(L6470& l, uint8_t microstepping, uint8_t krun, uint8_t khold)
 void init_L6470_drivers()
 {
   #if defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
-	init_6470(l6470_x, X_L6470_USTEPS, X_L6470_KRUN, X_L6470_KHOLD);
+	init_6470(l6470_x, X_L6470_USTEPS, (float)X_L6470_MAX_SPD, (float)X_L6470_FS_SPD,
+			  X_L6470_KRUN, X_L6470_KHOLD);
   #endif
   #if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
-	init_6470(l6470_y, Y_L6470_USTEPS, Y_L6470_KRUN, Y_L6470_KHOLD);
+	init_6470(l6470_y, Y_L6470_USTEPS, (float)Y_L6470_MAX_SPD, (float)Y_L6470_FS_SPD,
+			  Y_L6470_KRUN, Y_L6470_KHOLD);
   #endif
   #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
-	init_6470(l6470_z, Z_L6470_USTEPS, Z_L6470_KRUN, Z_L6470_KHOLD);
+	init_6470(l6470_z, Z_L6470_USTEPS, (float)Z_L6470_MAX_SPD, (float)Z_L6470_FS_SPD,
+			  Z_L6470_KRUN, Z_L6470_KHOLD);
   #endif
   #if defined(E0_L6470_CS_PIN) && (E0_L6470_CS_PIN > -1)
-	init_6470(l6470_e0, E0_L6470_USTEPS, E0_L6470_KRUN, E0_L6470_KHOLD);
+	init_6470(l6470_e0, E0_L6470_USTEPS, (float)E0_L6470_MAX_SPD, (float)E0_L6470_FS_SPD,
+			  E0_L6470_KRUN, E0_L6470_KHOLD);
   #endif
   #if (EXTRUDERS > 1) && defined(E1_L6470_CS_PIN) && (E1_L6470_CS_PIN > -1)
-	init_6470(l6470_e1, E1_L6470_USTEPS, E1_L6470_KRUN, E1_L6470_KHOLD);
+	init_6470(l6470_e1, E1_L6470_USTEPS, (float)E1_L6470_MAX_SPD, (float)E1_L6470_FS_SPD,
+			  E1_L6470_KRUN, E1_L6470_KHOLD);
   #endif
   #if (EXTRUDERS > 2) && defined(E2_L6470_CS_PIN) && (E2_L6470_CS_PIN > -1)
-	init_6470(l6470_e2, E2_L6470_USTEPS, E2_L6470_KRUN, E2_L6470_KHOLD);
+	init_6470(l6470_e2, E2_L6470_USTEPS, (float)E2_L6470_MAX_SPD, (float)E2_L6470_FS_SPD,
+			  E2_L6470_KRUN, E2_L6470_KHOLD);
   #endif
 }
 
@@ -797,6 +805,8 @@ ISR(TIMER1_COMPA_vect)
               WRITE(X_STEP_PIN, !INVERT_X_STEP_PIN);
           }
         #elif defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
+		  busy_count = 0;
+		  while ((digitalRead(X_L6470_BSY_PIN) == LOW)  && (++busy_count < 100)) ;
 		  l6470_x.move(X_L6470_NSTEPS << step_loops_shift);
 		#else
           WRITE(X_STEP_PIN, !INVERT_X_STEP_PIN);
@@ -822,6 +832,8 @@ ISR(TIMER1_COMPA_vect)
         counter_y += current_block->steps_y;
         if (counter_y > 0) {
           #if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
+			busy_count = 0;
+			while ((digitalRead(Y_L6470_BSY_PIN) == LOW)  && (++busy_count < 100)) ;
 			l6470_y.move(Y_L6470_NSTEPS << step_loops_shift);
           #else
             WRITE(Y_STEP_PIN, !INVERT_Y_STEP_PIN);
@@ -845,6 +857,8 @@ ISR(TIMER1_COMPA_vect)
       counter_z += current_block->steps_z;
       if (counter_z > 0) {
           #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
+		    busy_count = 0;
+		    while ((digitalRead(Z_L6470_BSY_PIN) == LOW)  && (++busy_count < 100)) ;
 			l6470_z.move(Z_L6470_NSTEPS << step_loops_shift);
           #else
 			WRITE(Z_STEP_PIN, !INVERT_Z_STEP_PIN);
