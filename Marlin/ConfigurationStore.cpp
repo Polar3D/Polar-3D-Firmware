@@ -4,6 +4,10 @@
 #include "ultralcd.h"
 #include "ConfigurationStore.h"
 
+#if USE_L6470 == 1
+#include "stepper_l6470.h"
+#endif
+
 void _EEPROM_writeData(int &pos, uint8_t* value, uint8_t size)
 {
     do
@@ -40,13 +44,13 @@ void _EEPROM_readData(int &pos, uint8_t* value, uint8_t size)
 #define EEPROM_VERSION "V11"
 
 #ifdef EEPROM_SETTINGS
-void Config_StoreSettings() 
+void Config_StoreSettings()
 {
   char ver[4]= "000";
   int i=EEPROM_OFFSET;
-  EEPROM_WRITE_VAR(i,ver); // invalidate data first 
-  EEPROM_WRITE_VAR(i,axis_steps_per_unit);  
-  EEPROM_WRITE_VAR(i,max_feedrate);  
+  EEPROM_WRITE_VAR(i,ver); // invalidate data first
+  EEPROM_WRITE_VAR(i,axis_steps_per_unit);
+  EEPROM_WRITE_VAR(i,max_feedrate);
   EEPROM_WRITE_VAR(i,max_acceleration_units_per_sq_second);
   EEPROM_WRITE_VAR(i,acceleration);
   EEPROM_WRITE_VAR(i,retract_acceleration);
@@ -96,6 +100,13 @@ void Config_StoreSettings()
   EEPROM_WRITE_VAR(i,base_max_pos[1]);
   EEPROM_WRITE_VAR(i,base_min_pos[2]);
   EEPROM_WRITE_VAR(i,base_max_pos[2]);
+  #if USE_L6470 == 1
+  EEPROM_WRITE_VAR(i, l6470_khold[0]);
+  EEPROM_WRITE_VAR(i, l6470_khold[1]);
+  EEPROM_WRITE_VAR(i, l6470_khold[2]);
+  EEPROM_WRITE_VAR(i, l6470_khold[3]);
+  #endif
+
   char ver2[4]=EEPROM_VERSION;
   i=EEPROM_OFFSET;
   EEPROM_WRITE_VAR(i,ver2); // validate data
@@ -116,41 +127,41 @@ void Config_PrintSettings()
     SERIAL_ECHOPAIR(" Z",axis_steps_per_unit[2]);
     SERIAL_ECHOPAIR(" E",axis_steps_per_unit[3]);
     SERIAL_ECHOLN("");
-      
+
     SERIAL_ECHO_START;
     SERIAL_ECHOLNPGM("Maximum feedrates (mm/s):");
     SERIAL_ECHO_START;
     SERIAL_ECHOPAIR("  M203 X",max_feedrate[0]);
-    SERIAL_ECHOPAIR(" Y",max_feedrate[1] ); 
-    SERIAL_ECHOPAIR(" Z", max_feedrate[2] ); 
+    SERIAL_ECHOPAIR(" Y",max_feedrate[1] );
+    SERIAL_ECHOPAIR(" Z", max_feedrate[2] );
     SERIAL_ECHOPAIR(" E", max_feedrate[3]);
     SERIAL_ECHOLN("");
 
     SERIAL_ECHO_START;
     SERIAL_ECHOLNPGM("Maximum Acceleration (mm/s2):");
     SERIAL_ECHO_START;
-    SERIAL_ECHOPAIR("  M201 X" ,max_acceleration_units_per_sq_second[0] ); 
-    SERIAL_ECHOPAIR(" Y" , max_acceleration_units_per_sq_second[1] ); 
+    SERIAL_ECHOPAIR("  M201 X" ,max_acceleration_units_per_sq_second[0] );
+    SERIAL_ECHOPAIR(" Y" , max_acceleration_units_per_sq_second[1] );
     SERIAL_ECHOPAIR(" Z" ,max_acceleration_units_per_sq_second[2] );
     SERIAL_ECHOPAIR(" E" ,max_acceleration_units_per_sq_second[3]);
     SERIAL_ECHOLN("");
     SERIAL_ECHO_START;
     SERIAL_ECHOLNPGM("Acceleration: S=acceleration, T=retract acceleration");
     SERIAL_ECHO_START;
-    SERIAL_ECHOPAIR("  M204 S",acceleration ); 
+    SERIAL_ECHOPAIR("  M204 S",acceleration );
     SERIAL_ECHOPAIR(" T" ,retract_acceleration);
     SERIAL_ECHOLN("");
 
     SERIAL_ECHO_START;
     SERIAL_ECHOLNPGM("Advanced variables: S=Min feedrate (mm/s), T=Min travel feedrate (mm/s), B=minimum segment time (ms), X=maximum XY jerk (mm/s),  Z=maximum Z jerk (mm/s),  E=maximum E jerk (mm/s)");
     SERIAL_ECHO_START;
-    SERIAL_ECHOPAIR("  M205 S",minimumfeedrate ); 
-    SERIAL_ECHOPAIR(" T" ,mintravelfeedrate ); 
-    SERIAL_ECHOPAIR(" B" ,minsegmenttime ); 
-    SERIAL_ECHOPAIR(" X" ,max_xy_jerk ); 
+    SERIAL_ECHOPAIR("  M205 S",minimumfeedrate );
+    SERIAL_ECHOPAIR(" T" ,mintravelfeedrate );
+    SERIAL_ECHOPAIR(" B" ,minsegmenttime );
+    SERIAL_ECHOPAIR(" X" ,max_xy_jerk );
     SERIAL_ECHOPAIR(" Z" ,max_z_jerk);
     SERIAL_ECHOPAIR(" E" ,max_e_jerk);
-    SERIAL_ECHOLN(""); 
+    SERIAL_ECHOLN("");
 
     SERIAL_ECHO_START;
     SERIAL_ECHOLNPGM("Home offset (mm):");
@@ -172,10 +183,10 @@ void Config_PrintSettings()
     SERIAL_ECHO_START;
     SERIAL_ECHOLNPGM("PID settings:");
     SERIAL_ECHO_START;
-    SERIAL_ECHOPAIR("   M301 P",Kp); 
-    SERIAL_ECHOPAIR(" I" ,unscalePID_i(Ki)); 
+    SERIAL_ECHOPAIR("   M301 P",Kp);
+    SERIAL_ECHOPAIR(" I" ,unscalePID_i(Ki));
     SERIAL_ECHOPAIR(" D" ,unscalePID_d(Kd));
-    SERIAL_ECHOLN(""); 
+    SERIAL_ECHOLN("");
 #endif
     SERIAL_ECHO_START;
     SERIAL_ECHOLNPGM("Min position (mm):");
@@ -200,7 +211,17 @@ void Config_PrintSettings()
     SERIAL_ECHOPAIR(" Z" , bed_level_probe_offset[2] );
     SERIAL_ECHOLN("");
 #endif
-} 
+#if USE_L6470 == 1
+    SERIAL_ECHO_START;
+    SERIAL_ECHOLNPGM("Stepper motor holding current (0-204):");
+    SERIAL_ECHO_START;
+    SERIAL_ECHOPAIR("  M213 X" , l6470_khold[0] );
+    SERIAL_ECHOPAIR(" Y" , l6470_khold[1] );
+    SERIAL_ECHOPAIR(" Z" , l6470_khold[2] );
+    SERIAL_ECHOPAIR(" E" , l6470_khold[3] );
+    SERIAL_ECHOLN("");
+#endif
+}
 #endif
 
 
@@ -215,13 +236,13 @@ void Config_RetrieveSettings()
     if (strncmp(ver,stored_ver,3) == 0)
     {
         // version number match
-        EEPROM_READ_VAR(i,axis_steps_per_unit);  
-        EEPROM_READ_VAR(i,max_feedrate);  
+        EEPROM_READ_VAR(i,axis_steps_per_unit);
+        EEPROM_READ_VAR(i,max_feedrate);
         EEPROM_READ_VAR(i,max_acceleration_units_per_sq_second);
-        
+
         // steps per sq second need to be updated to agree with the units per sq second (as they are what is used in the planner)
 		reset_acceleration_rates();
-        
+
         EEPROM_READ_VAR(i,acceleration);
         EEPROM_READ_VAR(i,retract_acceleration);
         EEPROM_READ_VAR(i,minimumfeedrate);
@@ -252,7 +273,7 @@ void Config_RetrieveSettings()
         #ifndef PIDTEMP
         float Kp,Ki,Kd;
         #endif
-        // do not need to scale PID values as the values in EEPROM are already scaled		
+        // do not need to scale PID values as the values in EEPROM are already scaled
         EEPROM_READ_VAR(i,Kp);
         EEPROM_READ_VAR(i,Ki);
         EEPROM_READ_VAR(i,Kd);
@@ -266,7 +287,15 @@ void Config_RetrieveSettings()
         EEPROM_READ_VAR(i,base_max_pos[1]);
         EEPROM_READ_VAR(i,base_min_pos[2]);
         EEPROM_READ_VAR(i,base_max_pos[2]);
-
+        #if USE_L6470 == 1
+        EEPROM_READ_VAR(i,l6470_khold[0]);
+        EEPROM_READ_VAR(i,l6470_khold[1]);
+        EEPROM_READ_VAR(i,l6470_khold[2]);
+        EEPROM_READ_VAR(i,l6470_khold[3]);
+		for (uint8_t i = 0; i < 4; i++)
+			if (l6470_khold[i] > 204)
+				l6470_khold[i] = 204;
+		#endif
 		// Call updatePID (similar to when we have processed M301)
 		updatePID();
         SERIAL_ECHO_START;
@@ -287,20 +316,20 @@ void Config_ResetDefault()
     float tmp1[]=DEFAULT_AXIS_STEPS_PER_UNIT;
     float tmp2[]=DEFAULT_MAX_FEEDRATE;
     long tmp3[]=DEFAULT_MAX_ACCELERATION;
-    for (short i=0;i<4;i++) 
+    for (short i=0;i<4;i++)
     {
-        axis_steps_per_unit[i]=tmp1[i];  
-        max_feedrate[i]=tmp2[i];  
+        axis_steps_per_unit[i]=tmp1[i];
+        max_feedrate[i]=tmp2[i];
         max_acceleration_units_per_sq_second[i]=tmp3[i];
     }
-    
+
     // steps per sq second need to be updated to agree with the units per sq second
     reset_acceleration_rates();
-    
+
     acceleration=DEFAULT_ACCELERATION;
     retract_acceleration=DEFAULT_RETRACT_ACCELERATION;
     minimumfeedrate=DEFAULT_MINIMUMFEEDRATE;
-    minsegmenttime=DEFAULT_MINSEGMENTTIME;       
+    minsegmenttime=DEFAULT_MINSEGMENTTIME;
     mintravelfeedrate=DEFAULT_MINTRAVELFEEDRATE;
     max_xy_jerk=DEFAULT_XYJERK;
     max_z_jerk=DEFAULT_ZJERK;
@@ -329,10 +358,10 @@ void Config_ResetDefault()
     Kp = DEFAULT_Kp;
     Ki = scalePID_i(DEFAULT_Ki);
     Kd = scalePID_d(DEFAULT_Kd);
-    
+
     // call updatePID (similar to when we have processed M301)
     updatePID();
-    
+
 #ifdef PID_ADD_EXTRUSION_RATE
     Kc = DEFAULT_Kc;
 #endif//PID_ADD_EXTRUSION_RATE
@@ -344,6 +373,13 @@ void Config_ResetDefault()
 	base_max_pos[0] = X_MAX_POS_DEFAULT;
 	base_max_pos[1] = Y_MAX_POS_DEFAULT;
 	base_max_pos[2] = Z_MAX_POS_DEFAULT;
+
+	#if USE_L6470 == 1
+	l6470_khold[0] = X_L6470_KHOLD;
+    l6470_khold[1] = Y_L6470_KHOLD;
+	l6470_khold[2] = Z_L6470_KHOLD;
+	l6470_khold[3] = E0_L6470_KHOLD;
+    #endif
 
 	SERIAL_ECHO_START;
 	SERIAL_ECHOLNPGM("Hardcoded Default Settings Loaded");

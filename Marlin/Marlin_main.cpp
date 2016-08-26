@@ -147,6 +147,7 @@
 // M210 - set travel soft minimum
 // M211 - set travel soft maximum
 // M212 - Set probe offset for bed leveling
+// M213 - Set motor holding currents (percentage duty cycles)
 // M218 - set hotend offset (in mm): T<extruder_number> X<offset_on_X> Y<offset_on_Y>
 // M220 S<factor in percent>- set speed factor override percentage
 // M221 S<factor in percent>- set extrude factor override percentage
@@ -310,6 +311,8 @@ void serial_echopair_P(const char *s_P, float v)
 void serial_echopair_P(const char *s_P, double v)
     { serialprintPGM(s_P); SERIAL_ECHO(v); }
 void serial_echopair_P(const char *s_P, unsigned long v)
+    { serialprintPGM(s_P); SERIAL_ECHO(v); }
+void serial_echopair_P(const char *s_P, uint8_t v)
     { serialprintPGM(s_P); SERIAL_ECHO(v); }
 
 extern "C"{
@@ -2289,6 +2292,33 @@ void process_commands()
       }
     }break;
     #endif
+	#if USE_L6470 == 1
+	case 213: // M213 L6470 motor holding currents (0-255; duty cycles)
+	{
+		for(int8_t i=0; i < 4; i++)
+		{
+			if(code_seen(axis_codes[i]))
+			{
+				uint8_t kh = code_value();
+				if (kh > 204) kh = 204;  // limit to a max of 80%
+				l6470_khold[i] = kh;
+				switch(i) {
+				case 0: l6470_x.setParam(L6470_KVAL_HOLD, kh); break;
+				case 1: l6470_y.setParam(L6470_KVAL_HOLD, kh); break;
+				case 2: l6470_z.setParam(L6470_KVAL_HOLD, kh); break;
+				case 3: l6470_e0.setParam(L6470_KVAL_HOLD, kh);
+				   #if EXTRUDERS > 1
+				     l6470_e1.setParam(L6470_KVAL_HOLD, kh);
+					 #if EXTRUDERS > 2
+					 l6470_e2.setParam(L6470_KVAL_HOLD, kh);
+					 #endif
+				   #endif
+				   break;
+				}
+			}
+		}
+	}break;
+	#endif
     case 220: // M220 S<factor in percent>- set speed factor override percentage
     {
       if(code_seen('S'))

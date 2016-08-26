@@ -176,9 +176,11 @@ asm volatile ( \
 
 // L6470 support
 
-#if defined(USE_L6470) && (USE_L6470 != 0)
+#if USE_L6470 == 1
 
 #include "L6470.h"
+
+uint8_t l6470_khold[4];
 
 // Declare L6470 objects, one per axis
 // We could declare these as an array using C++ automatic class copy constructor
@@ -308,8 +310,10 @@ void init_6470(L6470& l, uint8_t microstepping, float max_speed, float fs_speed,
 	//  result in failure to turn.  There are ACC, DEC, and HOLD KVAL
 	//  registers as well.
 	l.setParam(L6470_KVAL_RUN,  krun ? krun : 0x29);
-	l.setParam(L6470_KVAL_HOLD, khold ? khold : 0x29);
-
+	if (khold == 0) khold = 0x29;  // L6470 startup KHOLD is 0x29 = 41 ==> 16%
+	else if (khold > 0xCC) khold = 0xCC; // 0xCC = 204 ==> 80% max
+	l.setParam(L6470_KVAL_HOLD, khold)
+;
 	// Calling GetStatus() clears the UVLO bit in the status 
 	//  register, which is set by default on power-up. The driver 
 	//  may not run without that bit cleared by this read operation.
@@ -320,27 +324,27 @@ void init_L6470_drivers()
 {
   #if defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
 	init_6470(l6470_x, X_L6470_USTEPS, (float)X_L6470_MAX_SPD, (float)X_L6470_FS_SPD,
-			  X_L6470_KRUN, X_L6470_KHOLD);
+			  X_L6470_KRUN, l6470_khold[0]);
   #endif
   #if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
 	init_6470(l6470_y, Y_L6470_USTEPS, (float)Y_L6470_MAX_SPD, (float)Y_L6470_FS_SPD,
-			  Y_L6470_KRUN, Y_L6470_KHOLD);
+			  Y_L6470_KRUN, l6470_khold[1]);
   #endif
   #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
 	init_6470(l6470_z, Z_L6470_USTEPS, (float)Z_L6470_MAX_SPD, (float)Z_L6470_FS_SPD,
-			  Z_L6470_KRUN, Z_L6470_KHOLD);
+			  Z_L6470_KRUN, l6470_khold[2]);
   #endif
   #if defined(E0_L6470_CS_PIN) && (E0_L6470_CS_PIN > -1)
 	init_6470(l6470_e0, E0_L6470_USTEPS, (float)E0_L6470_MAX_SPD, (float)E0_L6470_FS_SPD,
-			  E0_L6470_KRUN, E0_L6470_KHOLD);
+			  E0_L6470_KRUN, l6470_khold[3]);
   #endif
   #if (EXTRUDERS > 1) && defined(E1_L6470_CS_PIN) && (E1_L6470_CS_PIN > -1)
 	init_6470(l6470_e1, E1_L6470_USTEPS, (float)E1_L6470_MAX_SPD, (float)E1_L6470_FS_SPD,
-			  E1_L6470_KRUN, E1_L6470_KHOLD);
+			  E1_L6470_KRUN, l6470_khold[3);
   #endif
   #if (EXTRUDERS > 2) && defined(E2_L6470_CS_PIN) && (E2_L6470_CS_PIN > -1)
 	init_6470(l6470_e2, E2_L6470_USTEPS, (float)E2_L6470_MAX_SPD, (float)E2_L6470_FS_SPD,
-			  E2_L6470_KRUN, E2_L6470_KHOLD);
+			  E2_L6470_KRUN, l6470_khold[3);
   #endif
 }
 

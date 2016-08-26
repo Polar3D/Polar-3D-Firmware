@@ -6,6 +6,8 @@
 
 #include "L6470.h"
 
+extern uint8_t l6470_khold[4];
+
 // Assumes pins.h info is loaded
 
 #if defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
