@@ -1033,7 +1033,7 @@ static void homeaxis(int axis) {
     if(axis==X_AXIS)
     {
   
-      current_position[X_AXIS] = bed_level_probe_offset[0];
+      current_position[X_AXIS] = X_HOME_RETRACT_MM;
       plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
       destination[X_AXIS] = 0;
       feedrate = homing_feedrate[axis];
@@ -1188,20 +1188,30 @@ void process_commands()
       
       if((home_all_axis) || (code_seen(axis_codes[X_AXIS]))) 
       {
-        
         // temporarily disable endstops so we can reposition
         enable_endstops(false);
 
-        // move out incase behind sensor
+       // blindly raise the Z 5mm
+       current_position[Z_AXIS] += Z_RAISE_BEFORE_HOMING;
+       destination[Z_AXIS] = current_position[Z_AXIS];       
+       do_blocking_move_to( current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] );
+
+       // move out incase behind sensor
         current_position[X_AXIS] = 0;
         do_blocking_move_relative( X_HOME_RETRACT_MM, 0, 0 );
         current_position[X_AXIS] = 0;
         
+        // temporarily enable endstops so we can home
+        enable_endstops(true);
+
         HOMEAXIS(X);        
+
+        // temporarily disable endstops so we can reposition
+        enable_endstops(false);
 
         // move build plate over Y sensor
         current_position[X_AXIS] = 0;
-        do_blocking_move_relative( -bed_level_probe_offset[0], 0, 0 );
+        do_blocking_move_relative( base_min_pos[0], 0, 0 );
         current_position[X_AXIS] = 0;
 
         // reanable enstops
