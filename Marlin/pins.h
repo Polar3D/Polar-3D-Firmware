@@ -1628,8 +1628,10 @@
   #define Z_MAX_PIN          36
   #define Z_L6470_KRUN      230 // 230/255 -> 90%
   #define Z_L6470_KHOLD      63 //  63/255 -> 25%
-  #define Z_L6470_MAX_SPD  3000
-  #define Z_L6470_FS_SPD   5000
+//#define Z_L6470_MAX_SPD  3000 // May be smoother?
+//#define Z_L6470_FS_SPD   5000 // May be smoother?
+  #define Z_L6470_MAX_SPD 15610 // Max speed
+  #define Z_L6470_FS_SPD  15625 // Max FS_SPD
 
   #define E0_NORM_USTEPS     16
   #define E0_L6470_USTEPS   ( L6470_STEP_SEL_1_64 )
