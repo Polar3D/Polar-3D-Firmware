@@ -23,7 +23,7 @@
 
 #define PROTOCOL_VERSION "1.0"
 
-#define POLAR3D_VERSION "1.1.160826a"
+#define POLAR3D_VERSION "1.1.160828a"
 
 #define MACHINE_NAME "Polar 3D"
 #define FIRMWARE_URL "http://polar3d.com"
