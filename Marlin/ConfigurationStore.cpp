@@ -334,7 +334,9 @@ void Config_ResetDefault()
     max_xy_jerk=DEFAULT_XYJERK;
     max_z_jerk=DEFAULT_ZJERK;
     max_e_jerk=DEFAULT_EJERK;
-    add_homeing[0] = add_homeing[1] = add_homeing[2] = 0;
+    add_homeing[0] = X_HOMING_DEFAULT;
+    add_homeing[1] = Y_HOMING_DEFAULT;
+    add_homeing[2] = Z_HOMING_DEFAULT;
 #ifdef DELTA
     endstop_adj[0] = endstop_adj[1] = endstop_adj[2] = 0;
 #endif
