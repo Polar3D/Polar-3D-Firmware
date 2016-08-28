@@ -64,15 +64,14 @@ volatile static unsigned long step_events_completed; // The number of step event
 static long acceleration_time, deceleration_time;
 //static unsigned long accelerate_until, decelerate_after, acceleration_rate, initial_rate, final_rate, nominal_rate;
 static unsigned short acc_step_rate; // needed for deccelaration start point
-#if !defined(USE_L6470) || USE_L6470 == 0
 static char step_loops;
 static unsigned short step_loops_nominal;
-#else
-static uint8_t busy_count;
-static uint8_t step_loops_shift;
-static unsigned short step_loops_shift_nominal;
-#endif
 static unsigned short OCR1A_nominal;
+
+#if USE_L6470 == 1
+static uint16_t busy_count;
+#define MAX_BUSY 500
+#endif
 
 volatile long endstops_trigsteps[3]={0,0,0};
 volatile long endstops_stepsTotal,endstops_stepsDone;
@@ -286,6 +285,7 @@ void init_6470(L6470& l, uint8_t microstepping, float max_speed, float fs_speed,
 	// Configure the overcurrent detection threshold
 	//  The constants for this are defined in the L6470.h file.
 	l.setParam(L6470_OCD_TH, L6470_OCD_TH_6000mA);
+	// l.setParam(L6470_STALL_TH, 0x7F);
 
 	// Set up the CONFIG register as follows:
 	//  PWM frequency divisor = 1
@@ -435,29 +435,20 @@ void step_wait(){
 FORCE_INLINE unsigned short calc_timer(unsigned short step_rate) {
   unsigned short timer;
   if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
-
-  if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
-    step_rate = (step_rate >> 2)&0x3fff;
-#if !defined(USE_L6470) || USE_L6470 == 0
-	step_loops = 4;
-#else
-    step_loops_shift = 2;  // step_loops = 4;
-#endif
+  if(step_rate > 3000) {
+    step_rate = (step_rate >> 3)&0x1fff;
+	step_loops = 8;
   }
-  else if(step_rate > 10000) { // If steprate > 10kHz >> step 2 times
+  else if(step_rate > 1500) { // If steprate > 20kHz >> step 4 times
+    step_rate = (step_rate >> 2)&0x3fff;
+	step_loops = 4;
+  }
+  else if(step_rate > 750) { // If steprate > 10kHz >> step 2 times
     step_rate = (step_rate >> 1)&0x7fff;
-#if !defined(USE_L6470) || USE_L6470 == 0
 	step_loops = 2;
-#else
-    step_loops_shift = 1;
-#endif
   }
   else {
-#if !defined(USE_L6470) || USE_L6470 == 0
     step_loops = 1;
-#else
-    step_loops_shift = 0;
-#endif
   }
 
   if(step_rate < (F_CPU/500000)) step_rate = (F_CPU/500000);
@@ -493,11 +484,7 @@ FORCE_INLINE void trapezoid_generator_reset() {
   // step_rate to timer interval
   OCR1A_nominal = calc_timer(current_block->nominal_rate);
   // make a note of the number of step loops required at nominal speed
-#if !defined(USE_L6470) || USE_L6470 == 0
   step_loops_nominal = step_loops;
-#else
-  step_loops_shift_nominal = step_loops_shift;
-#endif
   acc_step_rate = current_block->initial_rate;
   acceleration_time = calc_timer(acc_step_rate);
   OCR1A = acceleration_time;
@@ -771,14 +758,7 @@ ISR(TIMER1_COMPA_vect)
       }
     #endif //!ADVANCE
 
-    #if USE_L6470 == 1
-    // Reduce step_loops_shift if it would make us step too far
-    while (step_loops_shift &&   // we're single stepping already when step_loops_shift == 0
-           (step_events_completed + (1 << step_loops_shift)) > current_block->step_event_count)
-		--step_loops_shift;
-    #else
     for(int8_t i=0; i < step_loops; i++)
-    #endif
 	{ // Take multiple steps per interrupt (For high speed moves)
       #ifndef AT90USB
       MSerial.checkRx(); // Check for serial chars.
@@ -812,8 +792,8 @@ ISR(TIMER1_COMPA_vect)
           }
         #elif defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
 		  busy_count = 0;
-		  while ((digitalRead(X_L6470_BSY_PIN) == LOW)  && (++busy_count < 100)) ;
-		  l6470_x.move(X_L6470_NSTEPS << step_loops_shift);
+		  while ((digitalRead(X_L6470_BSY_PIN) == LOW)  && (++busy_count < MAX_BUSY)) ;
+		  l6470_x.move(X_L6470_NSTEPS);
 		#else
           WRITE(X_STEP_PIN, !INVERT_X_STEP_PIN);
         #endif        
@@ -839,8 +819,8 @@ ISR(TIMER1_COMPA_vect)
         if (counter_y > 0) {
           #if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
 			busy_count = 0;
-			while ((digitalRead(Y_L6470_BSY_PIN) == LOW)  && (++busy_count < 100)) ;
-			l6470_y.move(Y_L6470_NSTEPS << step_loops_shift);
+			while ((digitalRead(Y_L6470_BSY_PIN) == LOW)  && (++busy_count < MAX_BUSY)) ;
+			l6470_y.move(Y_L6470_NSTEPS);
           #else
             WRITE(Y_STEP_PIN, !INVERT_Y_STEP_PIN);
 		  #endif
@@ -864,9 +844,8 @@ ISR(TIMER1_COMPA_vect)
       if (counter_z > 0) {
           #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
 		    busy_count = 0;
-		    while ((digitalRead(Z_L6470_BSY_PIN) == LOW)  && (++busy_count < 100)) ;
-			// Bill: l6470_z.softStop();
-			l6470_z.move(Z_L6470_NSTEPS << step_loops_shift);
+		    while ((digitalRead(Z_L6470_BSY_PIN) == LOW)  && (++busy_count < MAX_BUSY)) ;
+			l6470_z.move(Z_L6470_NSTEPS);
           #else
 			WRITE(Z_STEP_PIN, !INVERT_Z_STEP_PIN);
           #endif
@@ -897,12 +876,8 @@ ISR(TIMER1_COMPA_vect)
 		  #endif
         }
       #endif //!ADVANCE
-#if USE_L6470 == 1
-	  step_events_completed += 1 << step_loops_shift;
-#else
-	  step_events_completed += step_loops;
+	  step_events_completed += 1;
       if(step_events_completed >= current_block->step_event_count) break;
-#endif
     }
     // Calculare new timer value
     unsigned short timer;
@@ -921,13 +896,9 @@ ISR(TIMER1_COMPA_vect)
       OCR1A = timer;
       acceleration_time += timer;
       #ifdef ADVANCE
-#if !defined(USE_L6470) || USE_L6470 == 0
 	  for(int8_t i=0; i < step_loops; i++) {
           advance += advance_rate;
         }
-#else
-	  advance += advance_rate << step_loops_shift;
-#endif
         //if(advance > current_block->advance) advance = current_block->advance;
         // Do E steps + advance steps
         e_steps[current_block->active_extruder] += ((advance >>8) - old_advance);
@@ -954,13 +925,9 @@ ISR(TIMER1_COMPA_vect)
       OCR1A = timer;
       deceleration_time += timer;
       #ifdef ADVANCE
-	  #if !defined(USE_L6470) || USE_L6470 == 0
         for(int8_t i=0; i < step_loops; i++) {
           advance -= advance_rate;
         }
-	  #else
-		advance -= advance_rate << step_loops_shift;
-	  #endif
         if(advance < final_advance) advance = final_advance;
         // Do E steps + advance steps
         e_steps[current_block->active_extruder] += ((advance >>8) - old_advance);
@@ -970,11 +937,7 @@ ISR(TIMER1_COMPA_vect)
     else {
       OCR1A = OCR1A_nominal;
       // ensure we're running at the correct step rate, even if we just came off an acceleration
-#if !defined(USE_L6470) || USE_L6470 == 0
       step_loops = step_loops_nominal;
-#else
-	  step_loops_shift = step_loops_shift_nominal;
-#endif
     }
 
     // If current block is finished, reset pointer
