@@ -427,16 +427,17 @@ void step_wait(){
 
 FORCE_INLINE unsigned short calc_timer(unsigned short step_rate) {
   unsigned short timer;
+
+  /*
+   *  Note: when Configuration_adv.h has MAX_STEP_FREQUENCY set to 5000,
+   *  the > 20000 and > 10000 cases never fire....
+   */
   if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
-  if(step_rate > 3000) {
-    step_rate = (step_rate >> 3)&0x1fff;
-	step_loops = 8;
-  }
-  else if(step_rate > 1500) { // If steprate > 20kHz >> step 4 times
+  if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
     step_rate = (step_rate >> 2)&0x3fff;
-	step_loops = 4;
+	step_loops = 2;
   }
-  else if(step_rate > 750) { // If steprate > 10kHz >> step 2 times
+  else if(step_rate > 10000) { // If steprate > 10kHz >> step 2 times
     step_rate = (step_rate >> 1)&0x7fff;
 	step_loops = 2;
   }
