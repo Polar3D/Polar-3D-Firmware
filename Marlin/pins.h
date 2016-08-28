@@ -1600,8 +1600,10 @@
   #define X_MAX_PIN          35
   #define X_L6470_KRUN      230 // KVAL_RUN PWM duty cycle, 230/255 -> 90%
   #define X_L6470_KHOLD      63 // KVAL_HOLD PWM duty cycle, 63/255 -> 25%
-  #define X_L6470_MAX_SPD   600
-  #define X_L6470_FS_SPD   1000
+//  #define X_L6470_MAX_SPD   600
+//  #define X_L6470_FS_SPD   1000
+  #define X_L6470_MAX_SPD   51600
+  #define X_L6470_FS_SPD   51625
 
   #define Y_NORM_USTEPS      16
   #define Y_L6470_USTEPS   ( L6470_STEP_SEL_1_64 )
@@ -1614,8 +1616,10 @@
   #define Y_MAX_PIN	         12
   #define Y_L6470_KRUN      230 // 230/255 -> 90%
   #define Y_L6470_KHOLD      63 //  63/255 -> 25%
-  #define Y_L6470_MAX_SPD   600
-  #define Y_L6470_FS_SPD   1000
+//#define Y_L6470_MAX_SPD   600
+//#define Y_L6470_FS_SPD   1000
+  #define Y_L6470_MAX_SPD 51600
+  #define Y_L6470_FS_SPD  51625
 
   #define Z_NORM_USTEPS      16
   #define Z_L6470_USTEPS   ( L6470_STEP_SEL_1_64 )
