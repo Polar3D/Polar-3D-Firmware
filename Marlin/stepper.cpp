@@ -244,8 +244,7 @@ uint8_t l6470_khold[4];
   L6470 l6470_e2(E2_L6470_CS_PIN, E2_L6470_RST_PIN, E2_L6470_BSY_PIN);
 #endif
 
-void init_6470(L6470& l, uint8_t microstepping, float max_speed, float fs_speed,
-			   uint8_t krun, uint8_t khold)
+void init_6470(L6470& l, uint8_t microstepping, uint8_t krun, uint8_t khold)
 {
 	// The init() routine is called 
 	l.init();
@@ -267,13 +266,15 @@ void init_6470(L6470& l, uint8_t microstepping, float max_speed, float fs_speed,
 	//  This is the maximum number of microsteps per second allowed.
 	//  For any move or goto type function where no speed is specified,
 	//  this value will be used.
-	l.setParam(L6470_MAX_SPEED, l.maxSpdCalc(max_speed));
+	// l.setParam(L6470_MAX_SPEED, l.maxSpdCalc(max_speed));
+    l.setParam(L6470_MAX_SPEED, 0x03FF);
 
 	// Configure the FS_SPD register:
 	//  This is the speed at which the driver ceases microstepping and
 	//  goes to full stepping.  To disable full-step switching, you can
 	//  pass 0x3FF to this register rather than calling fsCalc().
-	l.setParam(L6470_FS_SPD, l.fsCalc(fs_speed));
+	// l.setParam(L6470_FS_SPD, l.fsCalc(fs_speed));
+	l.setParam(L6470_FS_SPD, 0x03FF);
 
 	// Configure the acceleration rate:
 	//  Writing ACC to 0xfff sets the acceleration and deceleration to
@@ -323,30 +324,22 @@ void init_6470(L6470& l, uint8_t microstepping, float max_speed, float fs_speed,
 void init_L6470_drivers()
 {
   #if defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
-	init_6470(l6470_x, X_L6470_USTEPS, (float)X_L6470_MAX_SPD, (float)X_L6470_FS_SPD,
-			  X_L6470_KRUN, l6470_khold[0]);
+	init_6470(l6470_x, X_L6470_USTEPS, X_L6470_KRUN, l6470_khold[0]);
   #endif
   #if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
-	init_6470(l6470_y, Y_L6470_USTEPS, (float)Y_L6470_MAX_SPD, (float)Y_L6470_FS_SPD,
-			  Y_L6470_KRUN, l6470_khold[1]);
+	init_6470(l6470_y, Y_L6470_USTEPS, Y_L6470_KRUN, l6470_khold[1]);
   #endif
   #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
-	init_6470(l6470_z, Z_L6470_USTEPS, (float)Z_L6470_MAX_SPD, (float)Z_L6470_FS_SPD,
-			  Z_L6470_KRUN, l6470_khold[2]);
-	// l6470_z.setParam(L6470_MIN_SPEED, 0x0FFF);
-	// l6470_z.setLSPDOpt(true);
+	init_6470(l6470_z, Z_L6470_USTEPS, Z_L6470_KRUN, l6470_khold[2]);
   #endif
   #if defined(E0_L6470_CS_PIN) && (E0_L6470_CS_PIN > -1)
-	init_6470(l6470_e0, E0_L6470_USTEPS, (float)E0_L6470_MAX_SPD, (float)E0_L6470_FS_SPD,
-			  E0_L6470_KRUN, l6470_khold[3]);
+	init_6470(l6470_e0, E0_L6470_USTEPS, E0_L6470_KRUN, l6470_khold[3]);
   #endif
   #if (EXTRUDERS > 1) && defined(E1_L6470_CS_PIN) && (E1_L6470_CS_PIN > -1)
-	init_6470(l6470_e1, E1_L6470_USTEPS, (float)E1_L6470_MAX_SPD, (float)E1_L6470_FS_SPD,
-			  E1_L6470_KRUN, l6470_khold[3);
+	init_6470(l6470_e1, E1_L6470_USTEPS, E1_L6470_KRUN, l6470_khold[3);
   #endif
   #if (EXTRUDERS > 2) && defined(E2_L6470_CS_PIN) && (E2_L6470_CS_PIN > -1)
-	init_6470(l6470_e2, E2_L6470_USTEPS, (float)E2_L6470_MAX_SPD, (float)E2_L6470_FS_SPD,
-			  E2_L6470_KRUN, l6470_khold[3);
+	init_6470(l6470_e2, E2_L6470_USTEPS, E2_L6470_KRUN, l6470_khold[3);
   #endif
 }
 
