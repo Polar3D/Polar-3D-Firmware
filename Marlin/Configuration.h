@@ -309,11 +309,15 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 
 // Travel limits after homing
 #define X_MAX_POS_DEFAULT 100
-#define X_MIN_POS_DEFAULT 0
+#define X_MIN_POS_DEFAULT -19
 #define Y_MAX_POS_DEFAULT 360
 #define Y_MIN_POS_DEFAULT 0
 #define Z_MAX_POS_DEFAULT 150
 #define Z_MIN_POS_DEFAULT 0
+
+#define X_HOMING_DEFAULT  0
+#define Y_HOMING_DEFAULT  0
+#define Z_HOMING_DEFAULT -1
 
 #define X_MAX_LENGTH (base_max_pos[0] - base_min_pos[0])
 #define Y_MAX_LENGTH (base_max_pos[1] - base_min_pos[1])
@@ -402,8 +406,8 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 // default settings
 
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {53.91, 41.48148, 3200, 100.4}
-#define DEFAULT_MAX_FEEDRATE          { 150,  150,  30, 1000}    // (mm/sec)    
-#define DEFAULT_MAX_ACCELERATION      {1000, 1000, 250, 3000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
+#define DEFAULT_MAX_FEEDRATE          {  60,   60,   5, 1000}    // (mm/sec)    
+#define DEFAULT_MAX_ACCELERATION      { 500,  500, 250, 3000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 
 #define DEFAULT_ACCELERATION          1000    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
 #define DEFAULT_RETRACT_ACCELERATION  3000   // X, Y, Z and E max acceleration in mm/s^2 for retracts
