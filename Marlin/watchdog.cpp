@@ -23,9 +23,9 @@ void watchdog_init()
     //Take care, as this requires the correct order of operation, with interrupts disabled. See the datasheet of any AVR chip for details.
     wdt_reset();
     _WD_CONTROL_REG = _BV(_WD_CHANGE_BIT) | _BV(WDE);
-    _WD_CONTROL_REG = _BV(WDIE) | WDTO_4S;
+    _WD_CONTROL_REG = _BV(WDIE) | WDTO_8S;
 #else
-    wdt_enable(WDTO_4S);
+    wdt_enable(WDTO_8S);
 #endif
 }
 
