@@ -1595,15 +1595,12 @@
   #define X_L6470_CS_PIN      4 // PD4; pkg pin 29  ICP1
   #define X_L6470_RST_PIN    42 // PF4; pkg pin 57  ADC4 / TCK
   #define X_L6470_BSY_PIN    19 // PE7; pkg pin 02  INT.7 / AIN.1 / UVcon
+  #define X_L6470_SW_PIN     29 // PA1; pkg pin 50
   #define X_STOP_PIN         35
   #define X_MIN_PIN          35
   #define X_MAX_PIN          35
   #define X_L6470_KRUN      230 // KVAL_RUN PWM duty cycle, 230/255 -> 90%
   #define X_L6470_KHOLD      63 // KVAL_HOLD PWM duty cycle, 63/255 -> 25%
-//  #define X_L6470_MAX_SPD   600
-//  #define X_L6470_FS_SPD   1000
-  #define X_L6470_MAX_SPD   51600
-  #define X_L6470_FS_SPD   51625
 
   #define Y_NORM_USTEPS      16
   #define Y_L6470_USTEPS   ( L6470_STEP_SEL_1_64 )
@@ -1611,15 +1608,12 @@
   #define Y_L6470_CS_PIN      5 // PD5; pkg pin 30  XCK1
   #define Y_L6470_RST_PIN    43 // PF5; pkg pin 56  ADC6 / TMS
   #define Y_L6470_BSY_PIN    18 // PE6; pkg pin 01  INT.6 / AIN.0
+  #define Y_L6470_SW_PIN     31 // PA3; pkg pin 48
   #define Y_STOP_PIN         12
   #define Y_MIN_PIN 	     12
   #define Y_MAX_PIN	         12
   #define Y_L6470_KRUN      230 // 230/255 -> 90%
   #define Y_L6470_KHOLD      63 //  63/255 -> 25%
-//#define Y_L6470_MAX_SPD   600
-//#define Y_L6470_FS_SPD   1000
-  #define Y_L6470_MAX_SPD 51600
-  #define Y_L6470_FS_SPD  51625
 
   #define Z_NORM_USTEPS      16
   #define Z_L6470_USTEPS   ( L6470_STEP_SEL_1_64 )
@@ -1627,30 +1621,25 @@
   #define Z_L6470_CS_PIN      6 // PD6; pkg pin 31
   #define Z_L6470_RST_PIN    44 // PF6; pkg pin 55
   #define Z_L6470_BSY_PIN    17 // PC7; pkg pin 42
+  #define Z_L6470_SW_PIN     33 // PA5; pkg pin 46
   #define Z_STOP_PIN         36
   #define Z_MIN_PIN          36
   #define Z_MAX_PIN          36
   #define Z_L6470_KRUN      230 // 230/255 -> 90%
   #define Z_L6470_KHOLD      63 //  63/255 -> 25%
-//#define Z_L6470_MAX_SPD  3000 // May be smoother?
-//#define Z_L6470_FS_SPD   5000 // May be smoother?
-  #define Z_L6470_MAX_SPD 15610 // Max speed
-  #define Z_L6470_FS_SPD  15625 // Max FS_SPD
 
-  #define E0_NORM_USTEPS     16
-  #define E0_L6470_USTEPS   ( L6470_STEP_SEL_1_64 )
-  #define E0_L6470_NSTEPS     4 // (( 1 << E0_L6470_USTEPS ) / E0_NORM_USTEPS)
-  #define E0_L6470_CS_PIN     7 // PD7; pkg pin 32
-  #define E0_L6470_RST_PIN   45 // PF7; pkg pin 54
-  #define E0_L6470_BSY_PIN   13 // PC3; pkg pin 38
-  #define E0_L6470_KRUN     230 // 230/255 -> 90%
-//#define E0_L6470_KHOLD     63 //  63/255 -> 25% -- too weak; easy to skip motor holding filament w/fingers
-//#define E0_L6470_KHOLD     90 //  90/255 -> 35% -- so so; not too hard to skip motor holding filament
-  #define E0_L6470_KHOLD    102 // 102/255 -> 40% -- quite strong; hard to skip motor holding filament
-//#define E0_L6470_KHOLD    127 // 127/255 -> 50% -- very strong; hard to skip motor holding filament
-  #define E0_L6470_MAX_SPD  600
-  #define E0_L6470_FS_SPD  1000
-
+  #define E0_NORM_USTEPS      16
+  #define E0_L6470_USTEPS    ( L6470_STEP_SEL_1_64 )
+  #define E0_L6470_NSTEPS      4 // (( 1 << E0_L6470_USTEPS ) / E0_NORM_USTEPS)
+  #define E0_L6470_CS_PIN      7 // PD7; pkg pin 32
+  #define E0_L6470_RST_PIN    45 // PF7; pkg pin 54
+  #define E0_L6470_BSY_PIN    13 // PC3; pkg pin 38
+  #define E0_L6470_SW_PIN     35 // PA7; pkg pin 44
+  #define E0_L6470_KRUN      230 // 230/255 -> 90%
+//#define E0_L6470_KHOLD      63 //  63/255 -> 25% -- too weak; easy to skip motor holding filament w/fingers
+//#define E0_L6470_KHOLD      90 //  90/255 -> 35% -- so so; not too hard to skip motor holding filament
+  #define E0_L6470_KHOLD     102 // 102/255 -> 40% -- quite strong; hard to skip motor holding filament
+//#define E0_L6470_KHOLD     127 // 127/255 -> 50% -- very strong; hard to skip motor holding filament
 
   #define TEMP_0_PIN          1  // Arduino D39; PF1 / ADC1; pkg pin 60; Extruder / Analog pin numbering
   #define TEMP_BED_PIN        0  // Arduino D38; PF0 / ADC0; pkg pin 61; Bed / Analog pin numbering

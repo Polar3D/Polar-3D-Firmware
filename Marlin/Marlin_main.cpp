@@ -444,7 +444,32 @@ void setup()
   // turn on Raspberry Pi
   pinMode(RPI_ENABLE_PIN, OUTPUT);
   digitalWrite(RPI_ENABLE_PIN, HIGH);
-        
+
+#if USE_L6470 == 1
+  // Pull SW pins high for L6470s
+  pinMode(X_L6470_SW_PIN, OUTPUT);
+  digitalWrite(X_L6470_SW_PIN, HIGH);
+
+  pinMode(Y_L6470_SW_PIN, OUTPUT);
+  digitalWrite(Y_L6470_SW_PIN, HIGH);
+
+  pinMode(Z_L6470_SW_PIN, OUTPUT);
+  digitalWrite(Z_L6470_SW_PIN, HIGH);
+
+  pinMode(E0_L6470_SW_PIN, OUTPUT);
+  digitalWrite(E0_L6470_SW_PIN, HIGH);
+
+#if EXTRUDERS > 1
+  pinMode(E1_L6470_SW_PIN, OUTPUT);
+  digitalWrite(E1_L6470_SW_PIN, HIGH);
+
+#if EXTRUDERS > 2
+  pinMode(E2_L6470_SW_PIN, OUTPUT);
+  digitalWrite(E2_L6470_SW_PIN, HIGH);
+#endif
+#endif
+#endif
+
 #ifdef DISABLE_JTAG
   MCUCR = 0x80;
   MCUCR = 0x80;
