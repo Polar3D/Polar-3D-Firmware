@@ -266,14 +266,14 @@ void init_6470(L6470& l, uint8_t microstepping, uint8_t krun, uint8_t khold)
 	//  This is the maximum number of microsteps per second allowed.
 	//  For any move or goto type function where no speed is specified,
 	//  this value will be used.
-	// l.setParam(L6470_MAX_SPEED, l.maxSpdCalc(max_speed));
-    l.setParam(L6470_MAX_SPEED, 0x03FF);
+	l.setParam(L6470_MAX_SPEED, l.maxSpdCalc(600.0));
+    //l.setParam(L6470_MAX_SPEED, 0x00FF);
 
 	// Configure the FS_SPD register:
 	//  This is the speed at which the driver ceases microstepping and
 	//  goes to full stepping.  To disable full-step switching, you can
 	//  pass 0x3FF to this register rather than calling fsCalc().
-	// l.setParam(L6470_FS_SPD, l.fsCalc(fs_speed));
+    //l.setParam(L6470_FS_SPD, l.fsCalc(1000.0));
 	l.setParam(L6470_FS_SPD, 0x03FF);
 
 	// Configure the acceleration rate:
@@ -287,6 +287,20 @@ void init_6470(L6470& l, uint8_t microstepping, uint8_t krun, uint8_t khold)
 	//  The constants for this are defined in the L6470.h file.
 	l.setParam(L6470_OCD_TH, L6470_OCD_TH_6000mA);
 	// l.setParam(L6470_STALL_TH, 0x7F);
+
+	// Configure the RUN & HOLD KVAL
+	//  This defines the duty cycle of the PWM of the bridges during
+	//  running. 0xFF means that they are essentially NOT PWMed during
+	//  run; this MAY result in more power being dissipated than you
+	//  actually need for the task.  Setting this value too low may
+	//  result in failure to turn.  There are ACC, DEC, and HOLD KVAL
+	//  registers as well.
+	krun = 230;
+	khold = 63;
+	l.setParam(L6470_KVAL_RUN,  krun ? krun : 0x29);
+	if (khold == 0) khold = 0x29;  // L6470 startup KHOLD is 0x29 = 41 ==> 16%
+	else if (khold > 0xCC) khold = 0xCC; // 0xCC = 204 ==> 80% max
+	l.setParam(L6470_KVAL_HOLD, khold);
 
 	// Set up the CONFIG register as follows:
 	//  PWM frequency divisor = 1
