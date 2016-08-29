@@ -313,8 +313,8 @@ void init_6470(L6470& l, uint8_t microstepping, uint8_t krun, uint8_t khold)
 	l.setParam(L6470_KVAL_RUN,  krun ? krun : 0x29);
 	if (khold == 0) khold = 0x29;  // L6470 startup KHOLD is 0x29 = 41 ==> 16%
 	else if (khold > 0xCC) khold = 0xCC; // 0xCC = 204 ==> 80% max
-	l.setParam(L6470_KVAL_HOLD, khold)
-;
+	l.setParam(L6470_KVAL_HOLD, khold);
+
 	// Calling GetStatus() clears the UVLO bit in the status 
 	//  register, which is set by default on power-up. The driver 
 	//  may not run without that bit cleared by this read operation.
