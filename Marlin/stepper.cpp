@@ -68,11 +68,6 @@ static char step_loops;
 static unsigned short step_loops_nominal;
 static unsigned short OCR1A_nominal;
 
-#if USE_L6470 == 1
-static uint16_t busy_count;
-#define MAX_BUSY 500
-#endif
-
 volatile long endstops_trigsteps[3]={0,0,0};
 volatile long endstops_stepsTotal,endstops_stepsDone;
 static volatile bool endstop_x_hit=false;
@@ -180,6 +175,7 @@ asm volatile ( \
 #include "L6470.h"
 
 uint8_t l6470_khold[4];
+uint8_t busy_mask;
 
 // Declare L6470 objects, one per axis
 // We could declare these as an array using C++ automatic class copy constructor
@@ -524,6 +520,7 @@ ISR(TIMER1_COMPA_vect)
       counter_z = counter_x;
       counter_e = counter_x;
       step_events_completed = 0;
+	  busy_mask = 0;
 
       #ifdef Z_LATE_ENABLE
         if(current_block->steps_z > 0) {
@@ -543,6 +540,38 @@ ISR(TIMER1_COMPA_vect)
   }
 
   if (current_block != NULL) {
+
+	if (busy_mask) {
+		if (busy_mask & 1) {
+			if (digitalRead(X_L6470_BSY_PIN) == LOW) {
+				OCR1A = 200; // 100 uS
+				return;
+			}
+			busy_mask &= ~1;
+		}
+		if (busy_mask & 2) {
+			if (digitalRead(Y_L6470_BSY_PIN) == LOW) {
+				OCR1A = 200; // 100 uS
+				return;
+			}
+			busy_mask &= ~2;
+		}
+		if (busy_mask & 4) {
+			if (digitalRead(Z_L6470_BSY_PIN) == LOW) {
+				OCR1A = 200; // 100 uS
+				return;
+			}
+			busy_mask &= ~4;
+		}
+		if (busy_mask & 8) {
+			if (digitalRead(E0_L6470_BSY_PIN) == LOW) {
+				OCR1A = 200; // 100 uS
+				return;
+			}
+			busy_mask &= ~8;
+		}
+	}
+
     // Set directions TO DO This should be done once during init of trapezoid. Endstops -> interrupt
     out_bits = current_block->direction_bits;
 
@@ -798,10 +827,10 @@ ISR(TIMER1_COMPA_vect)
               WRITE(X_STEP_PIN, !INVERT_X_STEP_PIN);
           }
         #elif defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
-		  busy_count = 0;
-		  while ((digitalRead(X_L6470_BSY_PIN) == LOW)  && (++busy_count < MAX_BUSY)) ;
+		  // while (digitalRead(X_L6470_BSY_PIN) == LOW) ;
 		  l6470_x.move(X_L6470_NSTEPS);
-		#else
+		  busy_mask |= 1;  
+        #else
           WRITE(X_STEP_PIN, !INVERT_X_STEP_PIN);
         #endif        
           counter_x -= current_block->step_event_count;
@@ -825,9 +854,9 @@ ISR(TIMER1_COMPA_vect)
         counter_y += current_block->steps_y;
         if (counter_y > 0) {
           #if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
-			busy_count = 0;
-			while ((digitalRead(Y_L6470_BSY_PIN) == LOW)  && (++busy_count < MAX_BUSY)) ;
+			// while (digitalRead(Y_L6470_BSY_PIN) == LOW) ;
 			l6470_y.move(Y_L6470_NSTEPS);
+			busy_mask |= 2;
           #else
             WRITE(Y_STEP_PIN, !INVERT_Y_STEP_PIN);
 		  #endif
@@ -850,9 +879,9 @@ ISR(TIMER1_COMPA_vect)
       counter_z += current_block->steps_z;
       if (counter_z > 0) {
           #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
-		    busy_count = 0;
-		    while ((digitalRead(Z_L6470_BSY_PIN) == LOW)  && (++busy_count < MAX_BUSY)) ;
+		    // while (digitalRead(Z_L6470_BSY_PIN) == LOW) ;
 			l6470_z.move(Z_L6470_NSTEPS);
+			busy_mask |= 4;
           #else
 			WRITE(Z_STEP_PIN, !INVERT_Z_STEP_PIN);
           #endif
