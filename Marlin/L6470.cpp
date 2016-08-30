@@ -14,7 +14,6 @@
 #include <SPI.h>
 #include "L6470.h"
 
-// Bill: you can try direct SPI code and none of the Arduino SPI
 #define SPI_DIRECT 1
 
 #if SPI_DIRECT == 1
@@ -582,7 +581,6 @@ byte L6470::xfer(byte data)
 	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
 	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
 	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
-#if 0
 	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
 	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
 	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
@@ -592,14 +590,6 @@ byte L6470::xfer(byte data)
 	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
 	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
 	asm("nop"); //50ns on 20Mhz, 62.5ns on 16Mhz
-#endif
-
-	/*
-	 *   Bill clever code to signal a timeout can go here
-	 *  if (tries >= 100) {
-	 *    do something clever like light an LED
-	 *  }
-	 */
 
 #endif
 	
