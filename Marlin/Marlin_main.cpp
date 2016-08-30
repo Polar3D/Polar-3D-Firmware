@@ -446,8 +446,6 @@ void setup()
   digitalWrite(RPI_ENABLE_PIN, HIGH);
 
 #if USE_L6470 == 1
-#if 0
-#warning *** SW PINS ***
   // Pull SW pins high for L6470s
   pinMode(X_L6470_SW_PIN, OUTPUT);
   digitalWrite(X_L6470_SW_PIN, HIGH);
@@ -468,7 +466,6 @@ void setup()
 #if EXTRUDERS > 2
   pinMode(E2_L6470_SW_PIN, OUTPUT);
   digitalWrite(E2_L6470_SW_PIN, HIGH);
-#endif
 #endif
 #endif
 #endif

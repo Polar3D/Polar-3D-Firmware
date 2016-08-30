@@ -244,7 +244,7 @@ uint8_t l6470_khold[4];
   L6470 l6470_e2(E2_L6470_CS_PIN, E2_L6470_RST_PIN, E2_L6470_BSY_PIN);
 #endif
 
-void init_6470(L6470& l, uint8_t microstepping, uint8_t krun, uint8_t khold)
+void init_6470(L6470& l, uint8_t microstepping, float max_speed, uint8_t krun, uint8_t khold)
 {
 	// The init() routine is called 
 	l.init();
@@ -266,14 +266,13 @@ void init_6470(L6470& l, uint8_t microstepping, uint8_t krun, uint8_t khold)
 	//  This is the maximum number of microsteps per second allowed.
 	//  For any move or goto type function where no speed is specified,
 	//  this value will be used.
-	l.setParam(L6470_MAX_SPEED, l.maxSpdCalc(600.0));
-    //l.setParam(L6470_MAX_SPEED, 0x00FF);
+	l.setParam(L6470_MAX_SPEED, l.maxSpdCalc(max_speed * 1.5));
+    //l.setParam(L6470_MAX_SPEED, 0x03FF);
 
 	// Configure the FS_SPD register:
 	//  This is the speed at which the driver ceases microstepping and
 	//  goes to full stepping.  To disable full-step switching, you can
 	//  pass 0x3FF to this register rather than calling fsCalc().
-    //l.setParam(L6470_FS_SPD, l.fsCalc(1000.0));
 	l.setParam(L6470_FS_SPD, 0x03FF);
 
 	// Configure the acceleration rate:
@@ -288,20 +287,6 @@ void init_6470(L6470& l, uint8_t microstepping, uint8_t krun, uint8_t khold)
 	l.setParam(L6470_OCD_TH, L6470_OCD_TH_6000mA);
 	// l.setParam(L6470_STALL_TH, 0x7F);
 
-	// Configure the RUN & HOLD KVAL
-	//  This defines the duty cycle of the PWM of the bridges during
-	//  running. 0xFF means that they are essentially NOT PWMed during
-	//  run; this MAY result in more power being dissipated than you
-	//  actually need for the task.  Setting this value too low may
-	//  result in failure to turn.  There are ACC, DEC, and HOLD KVAL
-	//  registers as well.
-	krun = 230;
-	khold = 63;
-	l.setParam(L6470_KVAL_RUN,  krun ? krun : 0x29);
-	if (khold == 0) khold = 0x29;  // L6470 startup KHOLD is 0x29 = 41 ==> 16%
-	else if (khold > 0xCC) khold = 0xCC; // 0xCC = 204 ==> 80% max
-	l.setParam(L6470_KVAL_HOLD, khold);
-
 	// Set up the CONFIG register as follows:
 	//  PWM frequency divisor = 1
 	//  PWM frequency multiplier = 2 (62.5kHz PWM frequency)
@@ -313,7 +298,8 @@ void init_6470(L6470& l, uint8_t microstepping, uint8_t krun, uint8_t khold)
 	l.setParam(L6470_CONFIG, 
 			   L6470_CONFIG_PWM_DIV_1 | 
 			   L6470_CONFIG_PWM_MUL_2 | 
-			   L6470_CONFIG_SR_530V_us |
+			   L6470_CONFIG_SR_180V_us |
+			   // L6470_CONFIG_SR_530V_us |
 			   L6470_CONFIG_OC_SD_DISABLE |  
 			   L6470_CONFIG_INT_16MHZ);
 
@@ -325,6 +311,9 @@ void init_6470(L6470& l, uint8_t microstepping, uint8_t krun, uint8_t khold)
 	//  result in failure to turn.  There are ACC, DEC, and HOLD KVAL
 	//  registers as well.
 	l.setParam(L6470_KVAL_RUN,  krun ? krun : 0x29);
+	l.setParam(L6470_KVAL_ACC,  krun ? krun : 0x29);
+	l.setParam(L6470_KVAL_DEC,  krun ? krun : 0x29);
+
 	if (khold == 0) khold = 0x29;  // L6470 startup KHOLD is 0x29 = 41 ==> 16%
 	else if (khold > 0xCC) khold = 0xCC; // 0xCC = 204 ==> 80% max
 	l.setParam(L6470_KVAL_HOLD, khold);
@@ -338,22 +327,22 @@ void init_6470(L6470& l, uint8_t microstepping, uint8_t krun, uint8_t khold)
 void init_L6470_drivers()
 {
   #if defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
-	init_6470(l6470_x, X_L6470_USTEPS, X_L6470_KRUN, l6470_khold[0]);
+	init_6470(l6470_x, X_L6470_USTEPS, X_L6470_MAX_SPD, X_L6470_KRUN, l6470_khold[0]);
   #endif
   #if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
-	init_6470(l6470_y, Y_L6470_USTEPS, Y_L6470_KRUN, l6470_khold[1]);
+	init_6470(l6470_y, Y_L6470_USTEPS, Y_L6470_MAX_SPD, Y_L6470_KRUN, l6470_khold[1]);
   #endif
   #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
-	init_6470(l6470_z, Z_L6470_USTEPS, Z_L6470_KRUN, l6470_khold[2]);
+	init_6470(l6470_z, Z_L6470_USTEPS, Z_L6470_MAX_SPD, Z_L6470_KRUN, l6470_khold[2]);
   #endif
   #if defined(E0_L6470_CS_PIN) && (E0_L6470_CS_PIN > -1)
-	init_6470(l6470_e0, E0_L6470_USTEPS, E0_L6470_KRUN, l6470_khold[3]);
+	init_6470(l6470_e0, E0_L6470_USTEPS, E0_L6470_MAX_SPD, E0_L6470_KRUN, l6470_khold[3]);
   #endif
   #if (EXTRUDERS > 1) && defined(E1_L6470_CS_PIN) && (E1_L6470_CS_PIN > -1)
-	init_6470(l6470_e1, E1_L6470_USTEPS, E1_L6470_KRUN, l6470_khold[3);
+	init_6470(l6470_e1, E1_L6470_USTEPS, E1_L6470_MAX_SPD, E1_L6470_KRUN, l6470_khold[3);
   #endif
   #if (EXTRUDERS > 2) && defined(E2_L6470_CS_PIN) && (E2_L6470_CS_PIN > -1)
-	init_6470(l6470_e2, E2_L6470_USTEPS, E2_L6470_KRUN, l6470_khold[3);
+	init_6470(l6470_e2, E2_L6470_USTEPS, E2_L6470_MAX_SPD, E2_L6470_KRUN, l6470_khold[3);
   #endif
 }
 
@@ -447,7 +436,6 @@ FORCE_INLINE unsigned short calc_timer(unsigned short step_rate) {
    *  the > 20000 and > 10000 cases never fire....
    */
   if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
-/*
   if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
     step_rate = (step_rate >> 2)&0x3fff;
 	step_loops = 4;
@@ -456,7 +444,7 @@ FORCE_INLINE unsigned short calc_timer(unsigned short step_rate) {
     step_rate = (step_rate >> 1)&0x7fff;
 	step_loops = 2;
   }
-*/
+/*
   if (step_rate > 3000) {
     step_rate = (step_rate >> 2)&0x3fff;
 	step_loops = 4;
@@ -465,6 +453,7 @@ FORCE_INLINE unsigned short calc_timer(unsigned short step_rate) {
     step_rate = (step_rate >> 1)&0x7fff;
 	step_loops = 2;
   }
+*/
   else {
     step_loops = 1;
   }
@@ -1644,4 +1633,3 @@ void microstep_readings()
       SERIAL_PROTOCOL(   digitalRead(E1_MS1_PIN));
       SERIAL_PROTOCOLLN( digitalRead(E1_MS2_PIN));
 }
-
