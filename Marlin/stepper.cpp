@@ -436,6 +436,7 @@ FORCE_INLINE unsigned short calc_timer(unsigned short step_rate) {
    *  the > 20000 and > 10000 cases never fire....
    */
   if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
+/*
   if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
     step_rate = (step_rate >> 2)&0x3fff;
 	step_loops = 4;
@@ -444,7 +445,7 @@ FORCE_INLINE unsigned short calc_timer(unsigned short step_rate) {
     step_rate = (step_rate >> 1)&0x7fff;
 	step_loops = 2;
   }
-/*
+*/
   if (step_rate > 3000) {
     step_rate = (step_rate >> 2)&0x3fff;
 	step_loops = 4;
@@ -453,7 +454,6 @@ FORCE_INLINE unsigned short calc_timer(unsigned short step_rate) {
     step_rate = (step_rate >> 1)&0x7fff;
 	step_loops = 2;
   }
-*/
   else {
     step_loops = 1;
   }
