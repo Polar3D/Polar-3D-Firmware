@@ -51,7 +51,7 @@
 #error Not yet implemented for L6470 drivers
 #else
 #define WRITE_E_STEP(v) { \
-	    if (i) while (digitalRead(E0_L6470_BSY_PIN) == LOW) ; \
+	    if (busy_mask & 8) while (digitalRead(E0_L6470_BSY_PIN) == LOW) ; \
 	    l6470_e0.move(E0_L6470_NSTEPS);						  \
         busy_mask |= 8; }
   #define NORM_E_DIR() l6470_e0.setDir(INVERT_E0_DIR ? L6470_FWD : L6470_REV)

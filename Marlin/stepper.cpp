@@ -294,8 +294,9 @@ void init_6470(L6470& l, uint8_t microstepping, float max_speed, uint8_t krun, u
 	l.setParam(L6470_CONFIG, 
 			   L6470_CONFIG_PWM_DIV_1 | 
 			   L6470_CONFIG_PWM_MUL_2 | 
-			   L6470_CONFIG_SR_180V_us |
-			   // L6470_CONFIG_SR_530V_us |
+			   // L6470_CONFIG_SR_180V_us |
+			   // L6470_CONFIG_VS_COMP_ENABLE | // Didn't work worth snot: lots of low thrumming and not much motion
+			   L6470_CONFIG_SR_530V_us |
 			   L6470_CONFIG_OC_SD_DISABLE |  
 			   L6470_CONFIG_INT_16MHZ);
 
@@ -445,7 +446,7 @@ FORCE_INLINE unsigned short calc_timer(unsigned short step_rate) {
   }
 */
   if (step_rate > 3000) {
-    step_rate = (step_rate >> 2)&0x1fff;
+    step_rate = (step_rate >> 3)&0x1fff;
 	step_loops = 8;
   }
   else if (step_rate > 1500) {
@@ -837,7 +838,7 @@ ISR(TIMER1_COMPA_vect)
           }
         #elif defined(X_L6470_CS_PIN) && (X_L6470_CS_PIN > -1)
 		  // check BUSY when on second, third, fourth, ... iterate of 2x, 4x, ... stepping
-		  if (i) while (digitalRead(X_L6470_BSY_PIN) == LOW) ;
+		  if (busy_mask & 1) while (digitalRead(X_L6470_BSY_PIN) == LOW) ;
 		  l6470_x.move(X_L6470_NSTEPS);
 		  busy_mask |= 1;  
         #else
@@ -865,7 +866,7 @@ ISR(TIMER1_COMPA_vect)
         if (counter_y > 0) {
           #if defined(Y_L6470_CS_PIN) && (Y_L6470_CS_PIN > -1)
 		    // check BUSY when on second, third, fourth, ... iterate of 2x, 4x, ... stepping
-			if (i) while (digitalRead(Y_L6470_BSY_PIN) == LOW) ;
+			if (busy_mask & 2) while (digitalRead(Y_L6470_BSY_PIN) == LOW) ;
 			l6470_y.move(Y_L6470_NSTEPS);
 			busy_mask |= 2;
           #else
@@ -891,7 +892,7 @@ ISR(TIMER1_COMPA_vect)
       if (counter_z > 0) {
           #if defined(Z_L6470_CS_PIN) && (Z_L6470_CS_PIN > -1)
 		    // check BUSY when on second, third, fourth, ... iterate of 2x, 4x, ... stepping
-		    if (i) while (digitalRead(Z_L6470_BSY_PIN) == LOW) ;
+		    if (busy_mask & 4) while (digitalRead(Z_L6470_BSY_PIN) == LOW) ;
 			l6470_z.move(Z_L6470_NSTEPS);
 			busy_mask |= 4;
           #else
