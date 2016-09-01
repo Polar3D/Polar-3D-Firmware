@@ -1600,9 +1600,9 @@
   #define X_STOP_PIN         35
   #define X_MIN_PIN          35
   #define X_MAX_PIN          35
-  #define X_L6470_KRUN      230 // KVAL_RUN PWM duty cycle, 230/255 -> 90%
+  #define X_L6470_KRUN      255 // KVAL_RUN PWM duty cycle, 230/255 -> 90%
   #define X_L6470_KHOLD      63 // KVAL_HOLD PWM duty cycle, 63/255 -> 25%
-  #define X_L6470_MAX_SPD  3500
+  #define X_L6470_MAX_SPD  2000 // Had been 3000
 
   #define Y_NORM_USTEPS      16
   #define Y_L6470_USTEPS   ( L6470_STEP_SEL_1_16 )
@@ -1615,9 +1615,9 @@
   #define Y_STOP_PIN         12
   #define Y_MIN_PIN 	     12
   #define Y_MAX_PIN	         12
-  #define Y_L6470_KRUN      230 // 230/255 -> 90%
+  #define Y_L6470_KRUN      255 // 230/255 -> 90%
   #define Y_L6470_KHOLD      63 //  63/255 -> 25%
-  #define Y_L6470_MAX_SPD  2600
+  #define Y_L6470_MAX_SPD  2000 // Had been 2600
 
   #define Z_NORM_USTEPS      16
   #define Z_L6470_USTEPS   ( L6470_STEP_SEL_1_16 )
@@ -1630,7 +1630,7 @@
   #define Z_STOP_PIN         36
   #define Z_MIN_PIN          36
   #define Z_MAX_PIN          36
-  #define Z_L6470_KRUN      230 // 230/255 -> 90%
+  #define Z_L6470_KRUN      255 // 230/255 -> 90%
   #define Z_L6470_KHOLD      63 //  63/255 -> 25%
   #define Z_L6470_MAX_SPD 15610
 
@@ -1642,12 +1642,12 @@
   #define E0_L6470_BSY_PIN    13 // PC3; pkg pin 38
   #define E0_L6470_SW_PIN     35 // PA7; pkg pin 44
   #define E0_STEP_PIN         34 // PA6; pkg pin 45
-  #define E0_L6470_KRUN      230 // 230/255 -> 90%
+  #define E0_L6470_KRUN      255 // 230/255 -> 90%
 //#define E0_L6470_KHOLD      63 //  63/255 -> 25% -- too weak; easy to skip motor holding filament w/fingers
 //#define E0_L6470_KHOLD      90 //  90/255 -> 35% -- so so; not too hard to skip motor holding filament
   #define E0_L6470_KHOLD     102 // 102/255 -> 40% -- quite strong; hard to skip motor holding filament
 //#define E0_L6470_KHOLD     127 // 127/255 -> 50% -- very strong; hard to skip motor holding filament
-  #define E0_L6470_MAX_SPD  3700
+  #define E0_L6470_MAX_SPD  2000 // had been 3700
 
   #define TEMP_0_PIN          1  // Arduino D39; PF1 / ADC1; pkg pin 60; Extruder / Analog pin numbering
   #define TEMP_BED_PIN        0  // Arduino D38; PF0 / ADC0; pkg pin 61; Bed / Analog pin numbering
