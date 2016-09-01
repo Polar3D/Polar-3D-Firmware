@@ -170,7 +170,7 @@ asm volatile ( \
 
 // L6470 support
 
-#if USE_L6470 == 1
+#if defined(USE_L6470) && USE_L6470 == 1
 
 #include "L6470.h"
 
@@ -307,15 +307,14 @@ void init_6470(L6470& l, uint8_t microstepping, float max_speed, uint8_t krun, u
 	//  actually need for the task.  Setting this value too low may
 	//  result in failure to turn.  There are ACC, DEC, and HOLD KVAL
 	//  registers as well.
-	l.setParam(L6470_KVAL_RUN,  krun ? krun : 0x29);
-	//l.setParam(L6470_KVAL_ACC,  krun ? krun : 0x29);
-	//l.setParam(L6470_KVAL_DEC,  krun ? krun : 0x29);
-
+	krun = krun ? krun : 0x29;
+	l.setParam(L6470_KVAL_RUN,  krun);
+	l.setParam(L6470_KVAL_ACC,  krun);
+	l.setParam(L6470_KVAL_DEC,  krun);
+	
 	if (khold == 0) khold = 0x29;  // L6470 startup KHOLD is 0x29 = 41 ==> 16%
 	else if (khold > 0xCC) khold = 0xCC; // 0xCC = 204 ==> 80% max
 	l.setParam(L6470_KVAL_HOLD, khold);
-	l.setParam(L6470_KVAL_ACC,  khold);
-	l.setParam(L6470_KVAL_DEC,  khold);
 
 	// Calling GetStatus() clears the UVLO bit in the status 
 	//  register, which is set by default on power-up. The driver 
@@ -435,7 +434,8 @@ FORCE_INLINE unsigned short calc_timer(unsigned short step_rate) {
    *  the > 20000 and > 10000 cases never fire....
    */
   if(step_rate > MAX_STEP_FREQUENCY) step_rate = MAX_STEP_FREQUENCY;
-/*
+
+#if !defined(USE_L6470) || USE_L6470 != 1
   if(step_rate > 20000) { // If steprate > 20kHz >> step 4 times
     step_rate = (step_rate >> 2)&0x3fff;
 	step_loops = 4;
@@ -444,7 +444,7 @@ FORCE_INLINE unsigned short calc_timer(unsigned short step_rate) {
     step_rate = (step_rate >> 1)&0x7fff;
 	step_loops = 2;
   }
-*/
+#else
   if (step_rate > 3000) {
     step_rate = (step_rate >> 3)&0x1fff;
 	step_loops = 8;
@@ -457,6 +457,7 @@ FORCE_INLINE unsigned short calc_timer(unsigned short step_rate) {
     step_rate = (step_rate >> 1)&0x7fff;
 	step_loops = 2;
   }
+#endif
   else {
     step_loops = 1;
   }
@@ -527,8 +528,8 @@ ISR(TIMER1_COMPA_vect)
       counter_z = counter_x;
       counter_e = counter_x;
       step_events_completed = 0;
-	  #if USE_L6470 == 1
-	  busy_mask = 0;
+      #if defined(USE_L6470) && USE_L6470 == 1
+	    busy_mask = 0;
 	  #endif
 
       #ifdef Z_LATE_ENABLE
@@ -550,7 +551,7 @@ ISR(TIMER1_COMPA_vect)
 
   if (current_block != NULL) {
 
-	#if USE_L6470 == 1
+    #if defined(USE_L6470) && USE_L6470 == 1
 	if (busy_mask) {
 		if (busy_mask & 1) {
 			if (digitalRead(X_L6470_BSY_PIN) == LOW) {
@@ -1183,7 +1184,6 @@ void st_init()
     #endif
   #endif
 
-
   //Initialize Step Pins
   #if defined(X_STEP_PIN) && (X_STEP_PIN > -1)
     SET_OUTPUT(X_STEP_PIN);
@@ -1227,6 +1227,31 @@ void st_init()
     SET_OUTPUT(E2_STEP_PIN);
     WRITE(E2_STEP_PIN,INVERT_E_STEP_PIN);
     disable_e2();
+  #endif
+
+  #if defined(USE_L6470) && USE_L6470 == 1
+    // Pull SW pins high for L6470s
+    pinMode(X_L6470_SW_PIN, OUTPUT);
+    digitalWrite(X_L6470_SW_PIN, HIGH);
+
+    pinMode(Y_L6470_SW_PIN, OUTPUT);
+    digitalWrite(Y_L6470_SW_PIN, HIGH);
+
+    pinMode(Z_L6470_SW_PIN, OUTPUT);
+    digitalWrite(Z_L6470_SW_PIN, HIGH);
+
+    pinMode(E0_L6470_SW_PIN, OUTPUT);
+    digitalWrite(E0_L6470_SW_PIN, HIGH);
+
+    #if EXTRUDERS > 1
+      pinMode(E1_L6470_SW_PIN, OUTPUT);
+      digitalWrite(E1_L6470_SW_PIN, HIGH);
+
+      #if EXTRUDERS > 2
+        pinMode(E2_L6470_SW_PIN, OUTPUT);
+        digitalWrite(E2_L6470_SW_PIN, HIGH);
+      #endif
+    #endif
   #endif
 
   // waveform generation = 0100 = CTC
