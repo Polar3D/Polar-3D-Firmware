@@ -1564,6 +1564,10 @@
   #define TEMP_0_PIN          7  // Extruder / Analog pin numbering
   #define TEMP_BED_PIN        6  // Bed / Analog pin numbering
 #elif MOTHERBOARD == 84 //Printrboard rev F
+
+  // Enable pin for attached Raspberry Pi
+  #define RPI_ENABLE_PIN     10
+
   #define X_STOP_PIN         35
   #define X_MIN_PIN          35
   #define X_MAX_PIN          35
@@ -1579,12 +1583,18 @@
   #define TEMP_0_PIN          1  // Extruder / Analog pin numbering
   #define TEMP_BED_PIN        0  // Bed / Analog pin numbering
   #define SDSS               20
+
 #elif MOTHERBOARD == 85 // Printrboard ref J
 
   // Enable pin for attached Raspberry Pi
   #define RPI_ENABLE_PIN     10
 
   #define USE_L6470           1 // Compile for STmicro L6470 support
+
+  #ifdef MAX_STEP_FREQUENCY
+  #undef MAX_STEP_FREQUENCY
+  #endif
+  #define MAX_STEP_FREQUENCY 4000 // Max step frequency for Ultimaker (5000 pps / half step)
 
   // For the time being, use the same KVAL_RUN and KVAL_HOLD for all drivers
 
@@ -2756,9 +2766,9 @@
 #define Z_MIN_PIN          -1
 #endif
 
-#define _X_PINS X_STEP_PIN, X_DIR_PIN, X_ENABLE_PIN, X_MIN_PIN, X_MAX_PIN
-#define _Y_PINS Y_STEP_PIN, Y_DIR_PIN, Y_ENABLE_PIN, Y_MIN_PIN, Y_MAX_PIN
-#define _Z_PINS Z_STEP_PIN, Z_DIR_PIN, Z_ENABLE_PIN, Z_MIN_PIN, Z_MAX_PIN
+#define _X_PINS X_STEP_PIN, X_DIR_PIN, X_ENABLE_PIN, X_MIN_PIN, X_MAX_PIN,
+#define _Y_PINS Y_STEP_PIN, Y_DIR_PIN, Y_ENABLE_PIN, Y_MIN_PIN, Y_MAX_PIN,
+#define _Z_PINS Z_STEP_PIN, Z_DIR_PIN, Z_ENABLE_PIN, Z_MIN_PIN, Z_MAX_PIN,
 
 #if defined(USE_L6470) && (USE_L6470 != 0)
 #if defined(X_L6470_CS_PIN)
