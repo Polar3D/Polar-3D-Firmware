@@ -1036,19 +1036,12 @@ static void homeaxis(int axis) {
     // if x axis homing, move to actual zero position after finding home
     if(axis==X_AXIS)
     {
-  
-
-      current_position[X_AXIS] = X_HOME_RETRACT_MM;
+      current_position[X_AXIS] = -base_min_pos[0];
       plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
       destination[X_AXIS] = 0;
       feedrate = homing_feedrate[axis];
       plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
-      st_synchronize();
-      
-      //do_blocking_move_relative( -30, 0, 0 );
-      
- 
-      
+      st_synchronize(); 
     }
     
     axis_is_at_home(axis);					
@@ -1208,7 +1201,7 @@ void process_commands()
 
        // move out incase behind sensor
         current_position[X_AXIS] = 0;
-        do_blocking_move_relative( X_HOME_RETRACT_MM, 0, 0 );
+        do_blocking_move_relative( (-base_min_pos[0] + 5), 0, 0 );
         current_position[X_AXIS] = 0;
         
         // temporarily enable endstops so we can home
@@ -1220,8 +1213,8 @@ void process_commands()
         enable_endstops(false);
 
         // move build plate over Y sensor
-        current_position[X_AXIS] = 0;
-        do_blocking_move_relative( base_min_pos[0], 0, 0 );
+        current_position[X_AXIS] =  base_min_pos[0];
+        do_blocking_move_relative( 0, 0, 0 );
         current_position[X_AXIS] = 0;
 
         // reanable enstops
@@ -1349,8 +1342,9 @@ void process_commands()
                   do_blocking_move_to(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] + Z_RAISE_BETWEEN_PROBINGS);
                 }
                 
-                
+                enable_endstops(false);
                 do_blocking_move_to(xProbe - bed_level_probe_offset[0], yProbe - bed_level_probe_offset[1], current_position[Z_AXIS]);
+                enable_endstops(true);
     
                 engage_z_probe();   // Engage Z Servo endstop if available
                 run_z_probe();

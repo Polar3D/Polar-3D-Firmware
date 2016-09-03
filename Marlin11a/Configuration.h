@@ -16,7 +16,7 @@
 // startup. Implementation of an idea by Prof Braino to inform user that any changes made to this
 // build by the user have been successfully uploaded into firmware.
 #define STRING_VERSION_CONFIG_H __DATE__ " " __TIME__ // build date and time
-#define STRING_CONFIG_H_AUTHOR "(wsteele, PolarBoard 160901a)" // Who made the changes.
+#define STRING_CONFIG_H_AUTHOR "(wsteele, PolarBoard 160903a)" // Who made the changes.
 
 // SERIAL_PORT selects which serial port should be used for communication with the host.
 // This allows the connection of wireless adapters (for instance) to non-default port pins.
@@ -325,8 +325,8 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
   #ifdef ENABLE_AUTO_BED_LEVELING
 
   // these are the positions on the bed to do the probing
-  #define LEFT_PROBE_BED_POSITION 10
-  #define RIGHT_PROBE_BED_POSITION 90 //X_MAX_LENGTH-10
+  #define LEFT_PROBE_BED_POSITION 1
+  #define RIGHT_PROBE_BED_POSITION 50 //X_MAX_LENGTH-10
   #define BACK_PROBE_BED_POSITION 90 //Y_MAX_LENGTH-10
   #define FRONT_PROBE_BED_POSITION 0 //10
 
@@ -335,13 +335,13 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
   #define Y_PROBE_OFFSET_FROM_EXTRUDER_DEFAULT 0
   #define Z_PROBE_OFFSET_FROM_EXTRUDER_DEFAULT 0
 
-  #define Z_RAISE_BEFORE_HOMING 4       // (in mm) Raise Z before homing (G28) for Probe Clearance.
+  #define Z_RAISE_BEFORE_HOMING 2       // (in mm) Raise Z before homing (G28) for Probe Clearance.
                                         // Be sure you have this distance over your Z_MAX_POS in case
 
   #define XY_TRAVEL_SPEED 3000         // X and Y axis travel speed between probes, in mm/min
 
-  #define Z_RAISE_BEFORE_PROBING 4    //How much the extruder will be raised before traveling to the first probing point.
-  #define Z_RAISE_BETWEEN_PROBINGS 5  //How much the extruder will be raised when traveling from between next probing points
+  #define Z_RAISE_BEFORE_PROBING 2    //How much the extruder will be raised before traveling to the first probing point.
+  #define Z_RAISE_BETWEEN_PROBINGS 2  //How much the extruder will be raised when traveling from between next probing points
 
 
   //If defined, the Probe servo will be turned on only during movement and then turned off to avoid jerk
@@ -392,12 +392,12 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 
 //// MOVEMENT SETTINGS
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E
-#define HOMING_FEEDRATE {3000, 3000, 100, 0}  // set the homing speeds (mm/min)
+#define HOMING_FEEDRATE {3000, 3000, 300, 0}  // set the homing speeds (mm/min)
 
 // default settings
 
 #define DEFAULT_AXIS_STEPS_PER_UNIT   {53.91,41.48148,3200,100.4}
-#define DEFAULT_MAX_FEEDRATE          {350, 500, 10, 1000}    // (mm/sec)    
+#define DEFAULT_MAX_FEEDRATE          {350, 500, 7, 1000}    // (mm/sec)    
 #define DEFAULT_MAX_ACCELERATION      {1000,1000,10,3000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 
 #define DEFAULT_ACCELERATION          1000    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
