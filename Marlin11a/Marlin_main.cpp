@@ -872,7 +872,7 @@ static void set_bed_level_equation(float z_at_xLeft_yFront, float z_at_xRight_yF
 
     vector_3 xLeftyFront = vector_3(LEFT_PROBE_BED_POSITION, FRONT_PROBE_BED_POSITION, z_at_xLeft_yFront);
     vector_3 xLeftyBack = vector_3(LEFT_PROBE_BED_POSITION, BACK_PROBE_BED_POSITION, z_at_xLeft_yBack);
-    vector_3 xRightyFront = vector_3(RIGHT_PROBE_BED_POSITION, FRONT_PROBE_BED_POSITION, z_at_xRight_yFront);
+    vector_3 xRightyFront = vector_3(RIGHT_PROBE_BED_POSITION, FRONT_PROBE_BED_POSITION,  z_at_xLeft_yFront); //z_at_xRight_yFront);  Polar3D - need to cancel out any Y motion... only X can be tilted
 
     vector_3 xPositive = (xRightyFront - xLeftyFront).get_normal();
     vector_3 yPositive = (xLeftyBack - xLeftyFront).get_normal();
@@ -1012,6 +1012,25 @@ static void homeaxis(int axis) {
       axis==Y_AXIS ? HOMEAXIS_DO(Y) :
       axis==Z_AXIS ? HOMEAXIS_DO(Z) :
       0) {
+    
+    
+    /*
+        
+    // if x axis homing, move to actual zero position after finding home
+    if(axis==Z_AXIS)
+    {
+        while(digitalRead(Z_STOP_PIN))
+        {  
+          current_position[3] = 0;
+          plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[3]);
+          destination[3] = 1;
+          feedrate = homing_feedrate[axis];
+          plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[3], feedrate/60, active_extruder);
+          st_synchronize(); 
+        }
+    }
+    
+    */
 
     current_position[axis] = 0;
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
