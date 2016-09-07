@@ -412,7 +412,7 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 
 //// MOVEMENT SETTINGS
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E
-#define HOMING_FEEDRATE {2400, 2400, 300, 0}  // set the homing speeds (mm/min)
+#define HOMING_FEEDRATE {3000, 3000, 300, 0}  // set the homing speeds (mm/min)
 
 // default settings
 
