@@ -2568,6 +2568,12 @@
 #endif
 
 #ifdef X_STOP_PIN
+  #ifdef X_MIN_PIN
+  #undef X_MIN_PIN
+  #endif
+  #ifdef X_MAX_PIN
+  #undef X_MAX_PIN
+  #endif
   #if X_HOME_DIR < 0
     #define X_MIN_PIN X_STOP_PIN
     #define X_MAX_PIN -1
@@ -2578,6 +2584,12 @@
 #endif
 
 #ifdef Y_STOP_PIN
+  #ifdef Y_MIN_PIN
+  #undef Y_MIN_PIN
+  #endif
+  #ifdef Y_MAX_PIN
+  #undef Y_MAX_PIN
+  #endif
   #if Y_HOME_DIR < 0
     #define Y_MIN_PIN Y_STOP_PIN
     #define Y_MAX_PIN -1
@@ -2588,6 +2600,12 @@
 #endif
 
 #ifdef Z_STOP_PIN
+  #ifdef Z_MIN_PIN
+  #undef Z_MIN_PIN
+  #endif
+  #ifdef Z_MAX_PIN
+  #undef Z_MAX_PIN
+  #endif
   #if Z_HOME_DIR < 0
     #define Z_MIN_PIN Z_STOP_PIN
     #define Z_MAX_PIN -1
