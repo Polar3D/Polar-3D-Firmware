@@ -1018,7 +1018,7 @@ static void homeaxis(int axis) {
     // if z axis homing and endstop is already triggered, try to unlock it by forcing extruder down a bit
     if(axis==Z_AXIS)
     {
-        while(digitalRead(Z_STOP_PIN) && loopCounter++<15)
+        while((digitalRead(Z_MIN_PIN) != Z_MIN_ENDSTOP_INVERTING) && loopCounter++<15)
         {  
           
           float temp = .0;
