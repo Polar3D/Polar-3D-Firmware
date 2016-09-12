@@ -1013,7 +1013,8 @@ static void homeaxis(int axis) {
       axis==Z_AXIS ? HOMEAXIS_DO(Z) :
       0) {
     
-    
+    int loopCounter = 0;
+        
     // if z axis homing and endstop is already triggered, try to unlock it by forcing extruder down a bit
     if(axis==Z_AXIS)
     {
@@ -1024,9 +1025,9 @@ static void homeaxis(int axis) {
 	  if (code_seen('S')) temp=code_value();
           set_extrude_min_temp(temp);
           
-          current_position[3] = 0;
-          plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[3]);
-          destination[3] = 1;
+          current_position[E_AXIS] = 0;
+          plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+          destination[E_AXIS] = 1;
           feedrate = homing_feedrate[axis];
           plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[3], feedrate/60, active_extruder);
           st_synchronize(); 
@@ -1034,7 +1035,7 @@ static void homeaxis(int axis) {
           set_extrude_min_temp(EXTRUDE_MINTEMP);
         }
     }
-
+    
     current_position[axis] = 0;
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
     destination[axis] = 1.5 * max_length(axis) * home_dir(axis);
@@ -1058,15 +1059,16 @@ static void homeaxis(int axis) {
     // if x axis homing, move to actual zero position after finding home
     if(axis==X_AXIS)
     {
-      current_position[X_AXIS] = -base_min_pos[0];
+      current_position[X_AXIS] = -base_min_pos[X_AXIS];
       plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
       destination[X_AXIS] = 0;
-      feedrate = homing_feedrate[axis];
+      feedrate = homing_feedrate[X_AXIS];
       plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[E_AXIS], feedrate/60, active_extruder);
       st_synchronize(); 
     }
+   
+    //axis_is_at_home(axis);					
     
-    axis_is_at_home(axis);					
     destination[axis] = current_position[axis] = add_homeing[axis];
     feedrate = 0.0;
 
@@ -1203,6 +1205,7 @@ void process_commands()
       #if Z_HOME_DIR > 0                      // If homing away from BED do Z first
       if((home_all_axis) || (code_seen(axis_codes[Z_AXIS]))) {
         HOMEAXIS(Z);
+        axis_is_at_home(Z_AXIS);
       }
       #endif
       
@@ -1229,25 +1232,32 @@ void process_commands()
         // temporarily enable endstops so we can home
         enable_endstops(true);
 
-        HOMEAXIS(X);        
-
+        HOMEAXIS(X);   
+   
         // temporarily disable endstops so we can reposition
         enable_endstops(false);
 
         // move build plate over Y sensor
-        current_position[X_AXIS] =  base_min_pos[0];
+        current_position[X_AXIS] =  base_min_pos[X_AXIS];
         do_blocking_move_relative( 0, 0, 0 );
-        current_position[X_AXIS] = 0;
-
+        
+        if(home_all_axis)
+        {
+          current_position[X_AXIS] = add_homeing[X_AXIS];
+        }
+        else
+        {
+          current_position[X_AXIS] = -base_min_pos[X_AXIS] + add_homeing[X_AXIS];
+        }
+        
         // reanable enstops
-        enable_endstops(true);
+        enable_endstops(true);     
+
       }
 
       if((home_all_axis) || (code_seen(axis_codes[Y_AXIS]))) 
+
       {
-        // adjust to X zero point to align Y magnet
-        //do_blocking_move_to(0.0, current_position[Y_AXIS], current_position[Y_AXIS]);
-        
         HOMEAXIS(Y);
       }
       
@@ -1258,24 +1268,33 @@ void process_commands()
       }
       #endif
       
-      if(code_seen(axis_codes[X_AXIS])) 
+      if((home_all_axis) || code_seen(axis_codes[X_AXIS])) 
       {
         if(code_value_long() != 0) {
-          //current_position[X_AXIS]=code_value()+add_homeing[X_AXIS];
+          current_position[X_AXIS]=code_value()+add_homeing[X_AXIS];
+        }
+        else
+        {
           current_position[X_AXIS]=add_homeing[X_AXIS];
         }
       }
 
-      if(code_seen(axis_codes[Y_AXIS])) {
+      if((home_all_axis) || code_seen(axis_codes[Y_AXIS])) {
         if(code_value_long() != 0) {
-          //current_position[Y_AXIS]=code_value()+add_homeing[1];
+          current_position[Y_AXIS]=code_value()+add_homeing[1];
+         }
+         else
+         {
           current_position[Y_AXIS]=add_homeing[Y_AXIS];
         }
       }
 
-      if(code_seen(axis_codes[Z_AXIS])) {
+      if((home_all_axis) || code_seen(axis_codes[Z_AXIS])) {
         if(code_value_long() != 0) {
-          //current_position[Z_AXIS]=code_value()+add_homeing[Z_AXIS];
+          current_position[Z_AXIS]=code_value()+add_homeing[Z_AXIS];
+         }
+         else
+         {
           current_position[Z_AXIS]=add_homeing[Z_AXIS];
         }
       }
@@ -3493,4 +3512,3 @@ bool setTargetedHotend(int code){
   }
   return false;
 }
-
