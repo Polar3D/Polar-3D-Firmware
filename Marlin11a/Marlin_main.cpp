@@ -1014,23 +1014,26 @@ static void homeaxis(int axis) {
       0) {
     
     
-    /*
-        
-    // if x axis homing, move to actual zero position after finding home
+    // if z axis homing and endstop is already triggered, try to unlock it by forcing extruder down a bit
     if(axis==Z_AXIS)
     {
-        while(digitalRead(Z_STOP_PIN))
+        while(digitalRead(Z_STOP_PIN) && loopCounter++<15)
         {  
+          
+          float temp = .0;
+	  if (code_seen('S')) temp=code_value();
+          set_extrude_min_temp(temp);
+          
           current_position[3] = 0;
           plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[3]);
           destination[3] = 1;
           feedrate = homing_feedrate[axis];
           plan_buffer_line(destination[X_AXIS], destination[Y_AXIS], destination[Z_AXIS], destination[3], feedrate/60, active_extruder);
           st_synchronize(); 
+          
+          set_extrude_min_temp(EXTRUDE_MINTEMP);
         }
     }
-    
-    */
 
     current_position[axis] = 0;
     plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
