@@ -1493,7 +1493,7 @@ void process_commands()
             real_z = float(st_get_position(Z_AXIS))/axis_steps_per_unit[Z_AXIS];  //get the real Z (since the auto bed leveling is already correcting the plane)
             x_tmp = current_position[X_AXIS] + bed_level_probe_offset[0];
             y_tmp = current_position[Y_AXIS] + bed_level_probe_offset[1];
-            z_tmp = current_position[Z_AXIS];
+            z_tmp = current_position[Z_AXIS] + add_homeing[Z_AXIS];  // polar3d - added offset for user defined height adjustment (M206)
 
             apply_rotation_xyz(plan_bed_level_matrix, x_tmp, y_tmp, z_tmp);         //Apply the correction sending the probe offset
             current_position[Z_AXIS] = z_tmp - real_z + current_position[Z_AXIS];   //The difference is added to current position and sent to planner.
