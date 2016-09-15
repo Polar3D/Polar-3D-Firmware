@@ -325,7 +325,7 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 // Default home positions
 #define X_HOME_POS_DEFAULT  0
 #define Y_HOME_POS_DEFAULT  0
-#define Z_HOME_POS_DEFAULT -1
+#define Z_HOME_POS_DEFAULT -.15
 
 // Travel limits after homing
 #define X_MAX_POS_DEFAULT 100
@@ -353,7 +353,7 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
   // these are the offsets to the prob relative to the extruder tip (Hotend - Probe)
   #define X_PROBE_OFFSET_FROM_EXTRUDER_DEFAULT 0
   #define Y_PROBE_OFFSET_FROM_EXTRUDER_DEFAULT 180
-  #define Z_PROBE_OFFSET_FROM_EXTRUDER_DEFAULT -1
+  #define Z_PROBE_OFFSET_FROM_EXTRUDER_DEFAULT .8 
 
   #define Z_RAISE_BEFORE_HOMING 2       // (in mm) Raise Z before homing (G28) for Probe Clearance.
                                         // Be sure you have this distance over your Z_MAX_POS in case
