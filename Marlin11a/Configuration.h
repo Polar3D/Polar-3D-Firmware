@@ -76,13 +76,13 @@
 //       a single character.  Hence the two #defines.
 
 #define MOTHERBOARD_VARIANT     'a'
-#define MOTHERBOARD_VARIANT_STR "a"
+#define MOTHERBOARD_VARIANT_STR ""
 
 // User-specified version info of this build to display in [Pronterface, etc] terminal window during
 // startup. Implementation of an idea by Prof Braino to inform user that any changes made to this
 // build by the user have been successfully uploaded into firmware.
 #define STRING_VERSION_CONFIG_H __DATE__ " " __TIME__ // build date and time
-#define STRING_CONFIG_H_AUTHOR "(wsteele, PolarBoard 160919" MOTHERBOARD_VARIANT_STR ")" // Who made the changes.
+#define STRING_CONFIG_H_AUTHOR "(wsteele, PolarBoard 160921" MOTHERBOARD_VARIANT_STR ")" // Who made the changes.
 
 // Define this to set a custom name for your generic Mendel,
 // #define CUSTOM_MENDEL_NAME "This Mendel"
