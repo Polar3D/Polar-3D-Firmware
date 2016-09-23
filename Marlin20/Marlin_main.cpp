@@ -1218,10 +1218,14 @@ void process_commands()
         feedrate = homing_feedrate[Z_AXIS]/2;
 
         // blindly raise the Z 5mm
-        current_position[Z_AXIS] += Z_RAISE_BEFORE_HOMING;
-        destination[Z_AXIS] = current_position[Z_AXIS];       
-        plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], 0, current_position[E_AXIS]);
-        do_blocking_move_to( current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] );
+        if(current_position[Z_AXIS]<(Z_RAISE_BEFORE_HOMING * 2) - 1)
+        {
+          // blindly raise the Z 4mm
+          destination[Z_AXIS] = current_position[Z_AXIS] = 0;
+          plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+          do_blocking_move_to( current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS] + Z_RAISE_BEFORE_HOMING * 2 );
+          destination[Z_AXIS] = current_position[Z_AXIS] = Z_RAISE_BEFORE_HOMING * 2;
+        }
       
         feedrate = homing_feedrate[X_AXIS];
 
