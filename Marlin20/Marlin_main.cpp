@@ -1229,12 +1229,29 @@ void process_commands()
       
         feedrate = homing_feedrate[X_AXIS];
 
-       // move out incase behind sensor
-        destination[X_AXIS] = current_position[X_AXIS] = 0;
-        plan_set_position(0, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
-        do_blocking_move_relative( (-base_min_pos[0]) + 5, 0, 0 );
-        current_position[X_AXIS] = 0;
-        
+        // we we are less than 50, assume we are at or near endstop sensor
+        if(current_position[X_AXIS]<50.00)
+        {
+          // move out 15mm to see if we can trigger X endstop
+          if(((READ(X_MIN_PIN)^X_MIN_ENDSTOP_INVERTING)))
+          {
+            destination[X_AXIS] = current_position[X_AXIS] = 0;
+            plan_set_position(0, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+            do_blocking_move_relative(-15, 0, 0 );
+            current_position[X_AXIS] = 0;
+          }
+
+          // if we did trigger endstop, move out further
+          if(!(READ(X_MIN_PIN)^X_MIN_ENDSTOP_INVERTING))
+          {
+            // move out incase behind sensor
+            destination[X_AXIS] = current_position[X_AXIS] = 0;
+            plan_set_position(0, current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+            do_blocking_move_relative( (-base_min_pos[0]), 0, 0 );
+            current_position[X_AXIS] = 0;
+          }
+        }
+
         // temporarily enable endstops so we can home
         enable_endstops(true);
 
