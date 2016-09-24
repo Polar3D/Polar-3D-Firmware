@@ -8,7 +8,7 @@
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation, either version 3 of the License, or
  (at your option) any later version.
-
+`
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -435,11 +435,6 @@ void servo_init()
 
 void setup()
 {
-  
-  // turn on chassis fan
-  SET_OUTPUT(20);
-  WRITE(20,HIGH);
-        
         
 #ifdef DISABLE_JTAG
   MCUCR = 0x80;
@@ -554,9 +549,15 @@ void loop()
   checkHitEndstops();
   lcd_update();
   
-  // turn on chassis fan
-  SET_OUTPUT(20);
-  WRITE(20,HIGH);
+  // polar3d - reset x position if endstop detected while motors are disabled
+  if((READ(X_ENABLE_PIN) != X_ENABLE_ON))
+  {
+       	if(READ(X_MIN_PIN) != X_MIN_ENDSTOP_INVERTING)
+	{
+		current_position[X_AXIS] = 15;
+		plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
+	}
+  } 
         
 }
 
