@@ -1454,6 +1454,11 @@ void process_commands()
             current_position[Z_AXIS] = z_tmp - real_z + current_position[Z_AXIS];   //The difference is added to current position and sent to planner.
             plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
         }
+		          
+        #ifdef ENDSTOPS_ONLY_FOR_HOMING
+            enable_endstops(false);
+        #endif	    
+		    
         break;
         
     case 30: // G30 Single Z Probe
