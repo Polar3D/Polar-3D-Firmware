@@ -81,6 +81,11 @@
 #define EXTRUDER_AUTO_FAN_TEMPERATURE 50
 #define EXTRUDER_AUTO_FAN_SPEED   255  // == full speed
 
+#define CHECK_FAN_Z_HEIGHT
+#ifdef CHECK_FAN_Z_HEIGHT
+  #define EXTRUDER_FAN_FIRST_LAYER_SPEED  254  // defines the max first layer speed
+  #define EXTRUDER_FAN_FIRST_LAYER_HEIGHT .33 // defines the first layer height
+#endif
 
 //===========================================================================
 //=============================Mechanical Settings===========================
