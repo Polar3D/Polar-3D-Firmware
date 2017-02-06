@@ -222,6 +222,12 @@ float extruder_offset[NUM_EXTRUDER_OFFSETS][EXTRUDERS] = {
 #endif
 uint8_t active_extruder = 0;
 int fanSpeed=0;
+
+#ifdef CHECK_FAN_Z_HEIGHT
+int fanSetSpeed=fanSpeed;
+boolean fanLimited = false;
+#endif
+
 #ifdef SERVO_ENDSTOPS
   int servo_endstops[] = SERVO_ENDSTOPS;
   int servo_endstop_angles[] = SERVO_ENDSTOP_ANGLES;
@@ -1102,6 +1108,22 @@ void process_commands()
         get_coordinates(); // For X Y Z E F
         prepare_move();
         //ClearToSend();
+#ifdef CHECK_FAN_Z_HEIGHT
+        if(current_position[Z_AXIS]<EXTRUDER_FAN_FIRST_LAYER_HEIGHT)
+        {
+          fanSetSpeed = fanSpeed;
+          fanSpeed=constrain(fanSpeed,0,EXTRUDER_FAN_FIRST_LAYER_SPEED);
+          fanLimited = true;
+        }
+        else
+        {
+          if(fanLimited){
+            fanSpeed=fanSetSpeed;
+            fanLimited = false;          
+          }
+        }
+#endif
+	      
         return;
       }
       //break;
@@ -1894,6 +1916,23 @@ void process_commands()
         else {
           fanSpeed=255;
         }
+	    
+#ifdef CHECK_FAN_Z_HEIGHT
+        if(current_position[Z_AXIS]<EXTRUDER_FAN_FIRST_LAYER_HEIGHT)
+        {
+          fanSetSpeed = fanSpeed;
+          fanSpeed=constrain(fanSpeed,0,EXTRUDER_FAN_FIRST_LAYER_SPEED);
+          fanLimited = true;
+        }
+        else
+        {
+          if(fanLimited){
+            fanSpeed=fanSetSpeed;
+            fanLimited = false;          
+          }
+        }
+#endif	    
+	    
         break;
       case 107: //M107 Fan Off
         //SET_OUTPUT(20);
