@@ -1,6 +1,6 @@
 /* -*- c++ -*- */
 
-// Polar 3D 1.1 Production Firmware - 2016-06-05a
+// Polar 3D 1.1 Production Firmware - 2017-02-06a
 
 /*
     Reprap firmware based on Sprinter and grbl.
