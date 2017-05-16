@@ -12,12 +12,6 @@
 // example_configurations/delta directory.
 //
 
-// User-specified version info of this build to display in [Pronterface, etc] terminal window during
-// startup. Implementation of an idea by Prof Braino to inform user that any changes made to this
-// build by the user have been successfully uploaded into firmware.
-#define STRING_VERSION_CONFIG_H __DATE__ " " __TIME__ // build date and time
-#define STRING_CONFIG_H_AUTHOR "(Polar3D, Polar 3D Marlin Firmware)" // Who made the changes.
-
 // SERIAL_PORT selects which serial port should be used for communication with the host.
 // This allows the connection of wireless adapters (for instance) to non-default port pins.
 // Serial port 0 is still used by the Arduino bootloader regardless of this setting.
@@ -70,8 +64,25 @@
 // 21 = Elefu Ra Board (v3)
 
 #ifndef MOTHERBOARD
-#define MOTHERBOARD 85  // Printrboard rev J
+#define MOTHERBOARD 84
 #endif
+
+// Variant "a" for the Printrbot rev F boards with their funky Z endstop
+//
+//   MOTHERBOARD_VARIANT for pre-processor comparisons
+//   MOTHERBOARD_VARIANT_STR for building the version string at compile-time
+//
+// Note: cannot do compile time compares with a string but you can with
+//       a single character.  Hence the two #defines.
+
+//#define MOTHERBOARD_VARIANT     'a'
+#define MOTHERBOARD_VARIANT_STR ""
+
+// User-specified version info of this build to display in [Pronterface, etc] terminal window during
+// startup. Implementation of an idea by Prof Braino to inform user that any changes made to this
+// build by the user have been successfully uploaded into firmware.
+#define STRING_VERSION_CONFIG_H __DATE__ " " __TIME__ // build date and time
+#define STRING_CONFIG_H_AUTHOR "(wsteele, Printrboard Rev F6)" // Who made the changes.
 
 // Define this to set a custom name for your generic Mendel,
 // #define CUSTOM_MENDEL_NAME "This Mendel"
@@ -267,7 +278,11 @@
 // The pullups are needed if you directly connect a mechanical endswitch between the signal and ground pins.
 const bool X_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
 const bool Y_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+//if defined(MOTHERBOARD_VARIANT) && MOTHERBOARD_VARIANT == 'a'
+//const bool Z_MIN_ENDSTOP_INVERTING = false; // set to true to invert the logic of the endstop.
+//#else
 const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
+//#endif
 //const bool X_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
 //const bool Y_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
 //const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of the endstop.
@@ -280,10 +295,10 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 #endif
 
 // For Inverting Stepper Enable Pins (Active Low) use 0, Non Inverting (Active High) use 1
-#define X_ENABLE_ON 1
-#define Y_ENABLE_ON 1
-#define Z_ENABLE_ON 1
-#define E_ENABLE_ON 1 // For all extruders
+#define X_ENABLE_ON 0
+#define Y_ENABLE_ON 0
+#define Z_ENABLE_ON 0
+#define E_ENABLE_ON 0 // For all extruders
 
 // Disables axis when it's not being used.
 #define DISABLE_X false
@@ -291,12 +306,12 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 #define DISABLE_Z true
 #define DISABLE_E false // For all extruders
 
-#define INVERT_X_DIR false    // for Mendel set to false, for Orca set to true
-#define INVERT_Y_DIR true    // for Mendel set to true, for Orca set to false
-#define INVERT_Z_DIR false     // for Mendel set to false, for Orca set to true
-#define INVERT_E0_DIR false     // for direct drive extruder v9 set to true, for geared extruder set to false
-#define INVERT_E1_DIR false    // for direct drive extruder v9 set to true, for geared extruder set to false
-#define INVERT_E2_DIR false   // for direct drive extruder v9 set to true, for geared extruder set to false
+#define INVERT_X_DIR true    // for Mendel set to false, for Orca set to true
+#define INVERT_Y_DIR false    // for Mendel set to true, for Orca set to false
+#define INVERT_Z_DIR true     // for Mendel set to false, for Orca set to true
+#define INVERT_E0_DIR true     // for direct drive extruder v9 set to true, for geared extruder set to false
+#define INVERT_E1_DIR true    // for direct drive extruder v9 set to true, for geared extruder set to false
+#define INVERT_E2_DIR true   // for direct drive extruder v9 set to true, for geared extruder set to false
 
 // ENDSTOP SETTINGS:
 // Sets direction of endstops when homing; 1=MAX, -1=MIN
@@ -307,17 +322,18 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 #define min_software_endstops false // If true, axis won't move to coordinates less than HOME_POS.
 #define max_software_endstops false  // If true, axis won't move to coordinates greater than the defined lengths below.
 
+// Default home positions
+#define X_HOME_POS_DEFAULT  0
+#define Y_HOME_POS_DEFAULT  0
+#define Z_HOME_POS_DEFAULT -.15
+
 // Travel limits after homing
 #define X_MAX_POS_DEFAULT 100
-#define X_MIN_POS_DEFAULT -19
+#define X_MIN_POS_DEFAULT -20
 #define Y_MAX_POS_DEFAULT 360
 #define Y_MIN_POS_DEFAULT 0
 #define Z_MAX_POS_DEFAULT 150
 #define Z_MIN_POS_DEFAULT 0
-
-#define X_HOMING_DEFAULT  0
-#define Y_HOMING_DEFAULT  0
-#define Z_HOMING_DEFAULT -1
 
 #define X_MAX_LENGTH (base_max_pos[0] - base_min_pos[0])
 #define Y_MAX_LENGTH (base_max_pos[1] - base_min_pos[1])
@@ -329,23 +345,23 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
   #ifdef ENABLE_AUTO_BED_LEVELING
 
   // these are the positions on the bed to do the probing
-  #define LEFT_PROBE_BED_POSITION 5
-  #define RIGHT_PROBE_BED_POSITION 50 //X_MAX_LENGTH-10
-  #define BACK_PROBE_BED_POSITION 180 //Y_MAX_LENGTH-10
-  #define FRONT_PROBE_BED_POSITION 0 //10
+  #define LEFT_PROBE_BED_POSITION 0
+  #define RIGHT_PROBE_BED_POSITION 40 //X_MAX_LENGTH-10
+  #define BACK_PROBE_BED_POSITION 0 //Y_MAX_LENGTH-10
+  #define FRONT_PROBE_BED_POSITION 2 //10
 
   // these are the offsets to the prob relative to the extruder tip (Hotend - Probe)
-  #define X_PROBE_OFFSET_FROM_EXTRUDER_DEFAULT 5
-  #define Y_PROBE_OFFSET_FROM_EXTRUDER_DEFAULT 0
-  #define Z_PROBE_OFFSET_FROM_EXTRUDER_DEFAULT 0
+  #define X_PROBE_OFFSET_FROM_EXTRUDER_DEFAULT 0
+  #define Y_PROBE_OFFSET_FROM_EXTRUDER_DEFAULT 180
+  #define Z_PROBE_OFFSET_FROM_EXTRUDER_DEFAULT .8 
 
-  #define Z_RAISE_BEFORE_HOMING 4       // (in mm) Raise Z before homing (G28) for Probe Clearance.
+  #define Z_RAISE_BEFORE_HOMING 2       // (in mm) Raise Z before homing (G28) for Probe Clearance.
                                         // Be sure you have this distance over your Z_MAX_POS in case
 
   #define XY_TRAVEL_SPEED 3000         // X and Y axis travel speed between probes, in mm/min
 
-  #define Z_RAISE_BEFORE_PROBING 4    //How much the extruder will be raised before traveling to the first probing point.
-  #define Z_RAISE_BETWEEN_PROBINGS 5  //How much the extruder will be raised when traveling from between next probing points
+  #define Z_RAISE_BEFORE_PROBING 2    //How much the extruder will be raised before traveling to the first probing point.
+  #define Z_RAISE_BETWEEN_PROBINGS 2  //How much the extruder will be raised when traveling from between next probing points
 
 
   //If defined, the Probe servo will be turned on only during movement and then turned off to avoid jerk
@@ -358,7 +374,7 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 //If you have enabled the Bed Auto Levelling and are using the same Z Probe for Z Homing,
 //it is highly recommended you let this Z_SAFE_HOMING enabled!!!
 
-  //#define Z_SAFE_HOMING   // This feature is meant to avoid Z homing with probe outside the bed area.
+  #define Z_SAFE_HOMING   // This feature is meant to avoid Z homing with probe outside the bed area.
                           // When defined, it will:
                           // - Allow Z homing only after X and Y homing AND stepper drivers still enabled
                           // - If stepper drivers timeout, it will need X and Y homing again before Z homing
@@ -367,8 +383,8 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 
   #ifdef Z_SAFE_HOMING
 
-    #define Z_SAFE_HOMING_X_POINT (X_MAX_LENGTH/2)    // X point for Z homing when homing all axis (G28)
-    #define Z_SAFE_HOMING_Y_POINT (Y_MAX_LENGTH/2)    // Y point for Z homing when homing all axis (G28)
+    #define Z_SAFE_HOMING_X_POINT 0 //(X_MAX_LENGTH/2)    // X point for Z homing when homing all axis (G28)
+    #define Z_SAFE_HOMING_Y_POINT 0 //(Y_MAX_LENGTH/2)    // Y point for Z homing when homing all axis (G28)
 
   #endif
 
@@ -394,22 +410,15 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 #define MANUAL_Z_HOME_POS 0
 //#define MANUAL_Z_HOME_POS 402 // For delta: Distance between nozzle and print surface after homing.
 
-
-// A4980 Configuration Settings
-//#define A4980_CONFIG0_DEFAULT_1    0b00100111
-//#define A4980_CONFIG0_DEFAULT_2    0b01000110
-
 //// MOVEMENT SETTINGS
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E
 #define HOMING_FEEDRATE {3000, 3000, 300, 0}  // set the homing speeds (mm/min)
 
 // default settings
 
-// At 1000 mm/s/s and 1.0 mm retraction,
-// E speed gets to sqrt(2 * 1000 mm/s/s * 0.5 mm) = 32 mm/s
-#define DEFAULT_AXIS_STEPS_PER_UNIT   {53.91, 41.48148, 3200, 100.4}
-#define DEFAULT_MAX_FEEDRATE          {  60,   60,   5,   35}    // (mm/sec)    
-#define DEFAULT_MAX_ACCELERATION      { 500,  500, 250, 1000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
+#define DEFAULT_AXIS_STEPS_PER_UNIT   {53.91,41.48148,3200,100.4}
+#define DEFAULT_MAX_FEEDRATE          {350, 500, 7, 1000}    // (mm/sec)    
+#define DEFAULT_MAX_ACCELERATION      {1000,1000,50,3000}    // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 
 #define DEFAULT_ACCELERATION          1000    // X, Y, Z and E max acceleration in mm/s^2 for printing moves
 #define DEFAULT_RETRACT_ACCELERATION  3000   // X, Y, Z and E max acceleration in mm/s^2 for retracts
@@ -442,11 +451,11 @@ const bool Z_MIN_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 //#define DISABLE_M503
 
 // Preheat Constants
-#define PLA_PREHEAT_HOTEND_TEMP 180
+#define PLA_PREHEAT_HOTEND_TEMP 170
 #define PLA_PREHEAT_HPB_TEMP 0
 #define PLA_PREHEAT_FAN_SPEED 255   // Insert Value between 0 and 255
 
-#define ABS_PREHEAT_HOTEND_TEMP 240
+#define ABS_PREHEAT_HOTEND_TEMP 220
 #define ABS_PREHEAT_HPB_TEMP 0
 #define ABS_PREHEAT_FAN_SPEED 255   // Insert Value between 0 and 255
 

@@ -1503,7 +1503,7 @@
   http://www.pjrc.com/teensy/teensyduino.html
 * See http://reprap.org/wiki/Printrboard for more info
 ****************************************************************************************/
-#if MOTHERBOARD == 8 || MOTHERBOARD == 81 || MOTHERBOARD == 84 || MOTHERBOARD == 85
+#if MOTHERBOARD == 8 || MOTHERBOARD == 81 || MOTHERBOARD == 84
 #define KNOWN_BOARD 1
 #define AT90USB 1286  // Disable MarlinSerial etc.
 
@@ -1515,8 +1515,6 @@
 
 //Disable JTAG pins so they can be used for the Extrudrboard
 #define DISABLE_JTAG       true
-
-#if MOTHERBOARD != 85
 
 #define X_STEP_PIN          0
 #define X_DIR_PIN           1
@@ -1542,8 +1540,6 @@
 #define E2_DIR_PIN         27
 #define E2_ENABLE_PIN      45
 
-#endif
-
 #define HEATER_0_PIN       21  // Extruder
 #define HEATER_1_PIN       -1
 #define HEATER_2_PIN       -1
@@ -1551,10 +1547,10 @@
 
 // If soft or fast PWM is off then use Teensyduino pin numbering, Marlin
 // fastio pin numbering otherwise
-#if defined(FAN_SOFT_PWM) || defined(FAST_PWM_FAN)
-	#define FAN_PIN        22  // Fan
+#ifdef FAN_SOFT_PWM || FAST_PWM_FAN
+	#define FAN_PIN        16  // Fan
 #else
-	#define FAN_PIN        -1  //16  // Fan
+	#define FAN_PIN        16  // Fan
 #endif
 
 #if MOTHERBOARD == 8  // Teensylu
@@ -1564,17 +1560,13 @@
   #define TEMP_0_PIN          7  // Extruder / Analog pin numbering
   #define TEMP_BED_PIN        6  // Bed / Analog pin numbering
 #elif MOTHERBOARD == 84 //Printrboard rev F
-
-  // Enable pin for attached Raspberry Pi
-  #define RPI_ENABLE_PIN     10
-
   #define X_STOP_PIN         35
   #define X_MIN_PIN          35
   #define X_MAX_PIN          35
   
   #define Y_STOP_PIN         12
   #define Y_MIN_PIN 	     12
-  #define Y_MAX_PIN 	     12
+  #define Y_MAX_PIN	     12
   
   #define Z_STOP_PIN         36
   #define Z_MIN_PIN          36
@@ -1583,112 +1575,6 @@
   #define TEMP_0_PIN          1  // Extruder / Analog pin numbering
   #define TEMP_BED_PIN        0  // Bed / Analog pin numbering
   #define SDSS               20
-
-#elif MOTHERBOARD == 85 // Printrboard ref J
-
-  // Enable pin for attached Raspberry Pi
-  #define RPI_ENABLE_PIN     10
-
-  #define USE_L6470           1 // Compile for STmicro L6470 support
-
-  #ifdef MAX_STEP_FREQUENCY
-  #undef MAX_STEP_FREQUENCY
-  #endif
-  #define MAX_STEP_FREQUENCY 4000 // Max step frequency for Ultimaker (5000 pps / half step)
-
-  // For the time being, use the same KVAL_RUN and KVAL_HOLD for all drivers
-
-  #define X_NORM_USTEPS      16                    // Effective microstepping (e.g., 16 -> 1/16th)
-  #define X_L6470_USTEPS   ( L6470_STEP_SEL_1_16 ) // Run driver at this microstepping level (e.g., 1/64th)
-  #define X_L6470_NSTEPS      1                    // Number of driver steps to achieve _NORM_USTEPS
-                                                   //    (( 1 << X_L6470_USTEPS ) / X_NORM_USTEPS)
-  #define X_L6470_CS_PIN      4 // PD4; pkg pin 29  ICP1
-  #define X_L6470_RST_PIN    42 // PF4; pkg pin 57  ADC4 / TCK
-  #define X_L6470_BSY_PIN    19 // PE7; pkg pin 02  INT.7 / AIN.1 / UVcon
-  #define X_L6470_SW_PIN     29 // PA1; pkg pin 50
-  #define X_STEP_PIN         28 // PA0; pkg pin 51
-  #define X_STOP_PIN         35
-  #define X_MIN_PIN          35
-  #define X_MAX_PIN          35
-  #define X_L6470_KRUN      255 // KVAL_RUN PWM duty cycle, 230/255 -> 90%
-  #define X_L6470_KHOLD      63 // KVAL_HOLD PWM duty cycle, 63/255 -> 25%
-  #define X_L6470_MAX_SPD  2000 // Had been 3000
-
-  #define Y_NORM_USTEPS      16
-  #define Y_L6470_USTEPS   ( L6470_STEP_SEL_1_16 )
-  #define Y_L6470_NSTEPS      1 // (( 1 << Y_L6470_USTEPS ) / Z_NORM_USTEPS)
-  #define Y_L6470_CS_PIN      5 // PD5; pkg pin 30  XCK1
-  #define Y_L6470_RST_PIN    43 // PF5; pkg pin 56  ADC6 / TMS
-  #define Y_L6470_BSY_PIN    18 // PE6; pkg pin 01  INT.6 / AIN.0
-  #define Y_L6470_SW_PIN     31 // PA3; pkg pin 48
-  #define Y_STEP_PIN         30 // PA2; pkg pin 49
-  #define Y_STOP_PIN         12
-  #define Y_MIN_PIN 	     12
-  #define Y_MAX_PIN	         12
-  #define Y_L6470_KRUN      255 // 230/255 -> 90%
-  #define Y_L6470_KHOLD      63 //  63/255 -> 25%
-  #define Y_L6470_MAX_SPD  2000 // Had been 2600
-
-  #define Z_NORM_USTEPS      16
-  #define Z_L6470_USTEPS   ( L6470_STEP_SEL_1_16 )
-  #define Z_L6470_NSTEPS      1 // (( 1 << Z_L6470_USTEPS ) / Z_NORM_USTEPS)
-  #define Z_L6470_CS_PIN      6 // PD6; pkg pin 31
-  #define Z_L6470_RST_PIN    44 // PF6; pkg pin 55
-  #define Z_L6470_BSY_PIN    17 // PC7; pkg pin 42
-  #define Z_L6470_SW_PIN     33 // PA5; pkg pin 46
-  #define Z_STEP_PIN         32 // PA4; pkg pin 47
-  #define Z_STOP_PIN         36
-  #define Z_MIN_PIN          36
-  #define Z_MAX_PIN          36
-  #define Z_L6470_KRUN      255 // 230/255 -> 90%
-  #define Z_L6470_KHOLD      63 //  63/255 -> 25%
-  #define Z_L6470_MAX_SPD 15610
-
-  #define E0_NORM_USTEPS      16
-  #define E0_L6470_USTEPS    ( L6470_STEP_SEL_1_16 )
-  #define E0_L6470_NSTEPS      1 // (( 1 << E0_L6470_USTEPS ) / E0_NORM_USTEPS)
-  #define E0_L6470_CS_PIN      7 // PD7; pkg pin 32
-  #define E0_L6470_RST_PIN    45 // PF7; pkg pin 54
-  #define E0_L6470_BSY_PIN    13 // PC3; pkg pin 38
-  #define E0_L6470_SW_PIN     35 // PA7; pkg pin 44
-  #define E0_STEP_PIN         34 // PA6; pkg pin 45
-  #define E0_L6470_KRUN      255 // 230/255 -> 90%
-//#define E0_L6470_KHOLD      63 //  63/255 -> 25% -- too weak; easy to skip motor holding filament w/fingers
-//#define E0_L6470_KHOLD      90 //  90/255 -> 35% -- so so; not too hard to skip motor holding filament
-  #define E0_L6470_KHOLD     102 // 102/255 -> 40% -- quite strong; hard to skip motor holding filament
-//#define E0_L6470_KHOLD     127 // 127/255 -> 50% -- very strong; hard to skip motor holding filament
-  #define E0_L6470_MAX_SPD  2000 // had been 3700
-
-  #define TEMP_0_PIN          1  // Arduino D39; PF1 / ADC1; pkg pin 60; Extruder / Analog pin numbering
-  #define TEMP_BED_PIN        0  // Arduino D38; PF0 / ADC0; pkg pin 61; Bed / Analog pin numbering
-  #define SDSS               20
-
-  #if defined(X_DIR_PIN)
-  #undef X_DIR_PIN
-  #endif
-  #if defined(Y_DIR_PIN)
-  #undef Y_DIR_PIN
-  #endif
-  #if defined(Z_DIR_PIN)
-  #undef Z_DIR_PIN
-  #endif
-  #if defined(E0_DIR_PIN)
-  #undef E0_DIR_PIN
-  #endif
-
-  #if defined(X_ENABLE_PIN)
-  #undef X_ENABLE_PIN
-  #endif
-  #if defined(Y_ENABLE_PIN)
-  #undef Y_ENABLE_PIN
-  #endif
-  #if defined(Z_ENABLE_PIN)
-  #undef Z_ENABLE_PIN
-  #endif
-  #if defined(E0_ENABLE_PIN)
-  #undef E0_ENABLE_PIN
-  #endif
-
 #else  // Printrboard rev A to E
   #define X_STOP_PIN         35
   #define X_MIN_PIN          35
@@ -1702,13 +1588,13 @@
   #define Z_MIN_PIN          36
   #define Z_MAX_PIN          36
   
-  #define TEMP_0_PIN          1  // D39 Extruder / Analog pin numbering
-  #define TEMP_BED_PIN        0  // D38 Bed / Analog pin numbering
+  #define TEMP_0_PIN          1  // Extruder / Analog pin numbering
+  #define TEMP_BED_PIN        0  // Bed / Analog pin numbering
   #define SDSS               26
 #endif
 
-#define TEMP_1_PIN         2 // D40; ADC2
-#define TEMP_2_PIN         3 // D41; ADC3
+#define TEMP_1_PIN         2
+#define TEMP_2_PIN         3
 
 #define SDPOWER            -1
 #define LED_PIN            -1
@@ -1750,7 +1636,14 @@
   #define encrot3 1
 #endif
 
-#endif  // MOTHERBOARD == 8 (Teensylu) or 81 (Printrboard) or 84 (Printrboard J)
+#ifndef SDSUPPORT
+// these pins are defined in the SD library if building with SD support
+  #define SCK_PIN           9
+  #define MISO_PIN         11
+  #define MOSI_PIN         10
+#endif
+
+#endif  // MOTHERBOARD == 8 (Teensylu) or 81 (Printrboard)
 
 /****************************************************************************************
  * Brainwave 1.0 pin assignments (AT90USB646)
@@ -2662,7 +2555,6 @@
 #endif
 
 //List of pins which to ignore when asked to change by gcode, 0 and 1 are RX and TX, do not mess with those!
-#if !defined(USE_L6470) || USE_L6470 == 0
 #define _E0_PINS E0_STEP_PIN, E0_DIR_PIN, E0_ENABLE_PIN, HEATER_0_PIN,
 #if EXTRUDERS > 1
   #define _E1_PINS E1_STEP_PIN, E1_DIR_PIN, E1_ENABLE_PIN, HEATER_1_PIN,
@@ -2674,26 +2566,13 @@
 #else
   #define _E2_PINS
 #endif
-#else // USE_L6470
-#define _E0_PINS E0_L6470_CS_PIN, E0_L6470_RST_PIN, E0_L6470_BSY_PIN, HEATER_0_PIN,
-#if EXTRUDERS > 1
-  #define _E1_PINS E1_L6470_CS_PIN, E1_L6470_RST_PIN, E1_L6470_BSY_PIN, HEATER_1_PIN,
-#else
-  #define _E1_PINS
-#endif
-#if EXTRUDERS > 2
-  #define _E2_PINS E2_L6470_CS_PIN, E2_L6470_RST_PIN, E2_L6470_BSY_PIN, HEATER_2_PIN,
-#else
-  #define _E2_PINS
-#endif
-#endif
 
 #ifdef X_STOP_PIN
   #ifdef X_MIN_PIN
-    #undef X_MIN_PIN
+  #undef X_MIN_PIN
   #endif
   #ifdef X_MAX_PIN
-    #undef X_MAX_PIN
+  #undef X_MAX_PIN
   #endif
   #if X_HOME_DIR < 0
     #define X_MIN_PIN X_STOP_PIN
@@ -2706,10 +2585,10 @@
 
 #ifdef Y_STOP_PIN
   #ifdef Y_MIN_PIN
-    #undef Y_MIN_PIN
+  #undef Y_MIN_PIN
   #endif
   #ifdef Y_MAX_PIN
-    #undef Y_MAX_PIN
+  #undef Y_MAX_PIN
   #endif
   #if Y_HOME_DIR < 0
     #define Y_MIN_PIN Y_STOP_PIN
@@ -2722,10 +2601,10 @@
 
 #ifdef Z_STOP_PIN
   #ifdef Z_MIN_PIN
-    #undef Z_MIN_PIN
+  #undef Z_MIN_PIN
   #endif
   #ifdef Z_MAX_PIN
-    #undef Z_MAX_PIN
+  #undef Z_MAX_PIN
   #endif
   #if Z_HOME_DIR < 0
     #define Z_MIN_PIN Z_STOP_PIN
@@ -2737,60 +2616,20 @@
 #endif
 
 #ifdef DISABLE_MAX_ENDSTOPS
-#ifdef X_MAX_PIN
-  #undef X_MAX_PIN
-#endif
-#ifdef Y_MAX_PIN
-  #undef Y_MAX_PIN
-#endif
-#ifdef Z_MAX_PIN
-  #undef Z_MAX_PIN
-#endif
 #define X_MAX_PIN          -1
 #define Y_MAX_PIN          -1
 #define Z_MAX_PIN          -1
 #endif
 
 #ifdef DISABLE_MIN_ENDSTOPS
-#ifdef X_MIN_PIN
-  #undef X_MIN_PIN
-#endif
-#ifdef Y_MIN_PIN
-  #undef Y_MIN_PIN
-#endif
-#ifdef Z_MIN_PIN
-  #undef Z_MIN_PIN
-#endif
 #define X_MIN_PIN          -1
 #define Y_MIN_PIN          -1
 #define Z_MIN_PIN          -1
 #endif
 
-#define _X_PINS X_STEP_PIN, X_DIR_PIN, X_ENABLE_PIN, X_MIN_PIN, X_MAX_PIN,
-#define _Y_PINS Y_STEP_PIN, Y_DIR_PIN, Y_ENABLE_PIN, Y_MIN_PIN, Y_MAX_PIN,
-#define _Z_PINS Z_STEP_PIN, Z_DIR_PIN, Z_ENABLE_PIN, Z_MIN_PIN, Z_MAX_PIN,
-
-#if defined(USE_L6470) && (USE_L6470 != 0)
-#if defined(X_L6470_CS_PIN)
-#undef _X_PINS
-#define _X_PINS X_L6470_CS_PIN, X_L6470_RST_PIN, X_L6470_BSY_PIN, X_MIN_PIN, X_MAX_PIN,
-#endif
-#if defined(Y_L6470_CS_PIN)
-#undef _Y_PINS
-#define _Y_PINS Y_L6470_CS_PIN, Y_L6470_RST_PIN, Y_L6470_BSY_PIN, Y_MIN_PIN, Y_MAX_PIN,
-#endif
-#if defined(Z_L6470_CS_PIN)
-#undef _Z_PINS
-#define _Z_PINS Z_L6470_CS_PIN, Z_L6470_RST_PIN, Z_L6470_BSY_PIN, Z_MIN_PIN, Z_MAX_PIN,
-#endif
+#define SENSITIVE_PINS {0, 1, X_STEP_PIN, X_DIR_PIN, X_ENABLE_PIN, X_MIN_PIN, X_MAX_PIN, Y_STEP_PIN, Y_DIR_PIN, Y_ENABLE_PIN, Y_MIN_PIN, Y_MAX_PIN, Z_STEP_PIN, Z_DIR_PIN, Z_ENABLE_PIN, Z_MIN_PIN, Z_MAX_PIN, PS_ON_PIN, \
+                        HEATER_BED_PIN, FAN_PIN,                  \
+                        _E0_PINS _E1_PINS _E2_PINS             \
+                        analogInputToDigitalPin(TEMP_0_PIN), analogInputToDigitalPin(TEMP_1_PIN), analogInputToDigitalPin(TEMP_2_PIN), analogInputToDigitalPin(TEMP_BED_PIN) }
 #endif
 
-#define SENSITIVE_PINS {0, 1, _X_PINS _Y_PINS _Z_PINS PS_ON_PIN,		\
-							HEATER_BED_PIN, FAN_PIN,					\
-							_E0_PINS _E1_PINS _E2_PINS					\
-							analogInputToDigitalPin(TEMP_0_PIN),		\
-							analogInputToDigitalPin(TEMP_1_PIN),		\
-							analogInputToDigitalPin(TEMP_2_PIN),		\
-							analogInputToDigitalPin(TEMP_BED_PIN) }
-
-#endif
